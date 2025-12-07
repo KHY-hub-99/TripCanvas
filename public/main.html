@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>메인 페이지</title>
+  </head>
+  <body>
+    <h2>🎉 환영합니다! (로그인 성공)</h2>
+    <p>이 페이지는 로그인된 사용자만 접근할 수 있습니다.</p>
+    <button id="logoutButton">로그아웃</button>
+
+    <script>
+      document
+        .getElementById("logoutButton")
+        .addEventListener("click", async () => {
+          try {
+            const response = await fetch("/auth/logout", { method: "GET" });
+            const data = await response.json();
+
+            if (data.success && data.redirect) {
+              alert("로그아웃되었습니다.");
+              window.location.href = data.redirect; // 로그인 페이지로 이동
+            } else {
+              alert("로그아웃 처리에 문제가 발생했습니다.");
+            }
+          } catch (error) {
+            console.error("Logout fetch error:", error);
+            alert("로그아웃 중 네트워크 오류가 발생했습니다.");
+          }
+        });
+    </script>
+  </body>
+</html>
