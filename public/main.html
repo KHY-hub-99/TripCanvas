@@ -2,32 +2,1024 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <title>메인 페이지</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripCanvas - AI 기반 여행 플래너</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f5f7fa;
+        overflow: hidden;
+      }
+
+      /* 헤더 */
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .trip-title {
+        font-size: 18px;
+        font-weight: 500;
+        padding-left: 16px;
+        border-left: 2px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .collab-users {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid #667eea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #667eea;
+        font-size: 14px;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .user-avatar:hover {
+        transform: scale(1.1);
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s;
+        font-size: 14px;
+      }
+
+      .btn-primary {
+        background: white;
+        color: #667eea;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-secondary {
+        background: #fff;
+        color: #667eea; /* 빨간색 텍스트 */
+        border: 1px solid #611be4; /* 빨간색 테두리 */
+      }
+
+      .btn-secondary:hover {
+        color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      }
+
+      /* 메인 레이아웃 */
+      .main-container {
+        display: flex;
+        height: calc(100vh - 68px);
+      }
+
+      /* 왼쪽 사이드바 */
+      .sidebar {
+        width: 400px;
+        background: white;
+        border-right: 1px solid #e1e8ed;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .sidebar-tabs {
+        display: flex;
+        border-bottom: 1px solid #e1e8ed;
+        background: #f8fafc;
+      }
+
+      .tab {
+        flex: 1;
+        padding: 16px;
+        text-align: center;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        font-weight: 500;
+        color: #64748b;
+        transition: all 0.3s;
+      }
+
+      .tab.active {
+        color: #667eea;
+        background: white;
+        border-bottom: 3px solid #667eea;
+      }
+
+      .sidebar-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      /* AI 플래너 섹션 */
+      .ai-planner {
+        margin-bottom: 24px;
+      }
+
+      .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .input-group {
+        margin-bottom: 16px;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #475569;
+        font-size: 14px;
+      }
+
+      .input-group input,
+      .input-group select,
+      .input-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+      }
+
+      .input-group input:focus,
+      .input-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .template-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .chip {
+        padding: 8px 16px;
+        background: #f1f5f9;
+        border: 2px solid transparent;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s;
+      }
+
+      .chip:hover {
+        background: #e2e8f0;
+      }
+
+      .chip.selected {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+      }
+
+      .btn-generate {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 16px;
+        transition: transform 0.3s;
+      }
+
+      .btn-generate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+      }
+
+      /* 장소 리스트 */
+      .place-item {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .place-item:hover {
+        border-color: #667eea;
+        transform: translateX(4px);
+      }
+
+      .place-number {
+        display: inline-block;
+        width: 28px;
+        height: 28px;
+        background: #667eea;
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 28px;
+        font-weight: bold;
+        font-size: 14px;
+        margin-right: 12px;
+      }
+
+      .place-name {
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 6px;
+      }
+
+      .place-description {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 8px;
+      }
+
+      .place-tags {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .tag {
+        padding: 4px 10px;
+        background: white;
+        border-radius: 12px;
+        font-size: 11px;
+        color: #667eea;
+        border: 1px solid #e2e8f0;
+      }
+
+      /* 중앙 지도 영역 */
+      .map-container {
+        flex: 1;
+        position: relative;
+        background: #e5e7eb;
+      }
+
+      .map-canvas {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        position: relative;
+      }
+
+      .map-placeholder {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: #94a3b8;
+      }
+
+      .map-placeholder-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+      }
+
+      /* 지도 툴바 */
+      .map-toolbar {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        gap: 8px;
+      }
+
+      .tool-btn {
+        width: 44px;
+        height: 44px;
+        border: none;
+        background: #f8fafc;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 20px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .tool-btn:hover {
+        background: #667eea;
+        color: white;
+        transform: scale(1.05);
+      }
+
+      .tool-btn.active {
+        background: #667eea;
+        color: white;
+      }
+
+      /* 오른쪽 패널 */
+      .right-panel {
+        width: 350px;
+        background: white;
+        border-left: 1px solid #e1e8ed;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel-tabs {
+        display: flex;
+        border-bottom: 1px solid #e1e8ed;
+        background: #f8fafc;
+      }
+
+      .panel-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      /* 협업 채팅 */
+      .chat-messages {
+        margin-bottom: 16px;
+      }
+
+      .message {
+        margin-bottom: 16px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 12px;
+      }
+
+      .message-author {
+        font-weight: 600;
+        font-size: 13px;
+        color: #667eea;
+        margin-bottom: 4px;
+      }
+
+      .message-text {
+        font-size: 14px;
+        color: #334155;
+      }
+
+      .message-time {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 4px;
+      }
+
+      .chat-input {
+        display: flex;
+        gap: 8px;
+        padding: 16px;
+        border-top: 1px solid #e1e8ed;
+        background: white;
+      }
+
+      .chat-input input {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+      }
+
+      .chat-input button {
+        padding: 12px 20px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      /* 예산 트래커 */
+      .budget-summary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+      }
+
+      .budget-amount {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+
+      .budget-label {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .expense-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      .expense-info {
+        flex: 1;
+      }
+
+      .expense-name {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .expense-category {
+        font-size: 12px;
+        color: #64748b;
+      }
+
+      .expense-amount {
+        font-weight: 600;
+        font-size: 16px;
+        color: #667eea;
+      }
+
+      /* WebRTC 비디오 */
+      .video-chat {
+        background: #1e293b;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+
+      .video-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 8px;
+      }
+
+      .video-tile {
+        aspect-ratio: 4/3;
+        background: #334155;
+        border-radius: 8px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 48px;
+      }
+
+      .video-name {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        color: white;
+      }
+
+      .video-controls {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        padding: 12px;
+        background: #0f172a;
+      }
+
+      .video-control-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background: #475569;
+        color: white;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.3s;
+      }
+
+      .video-control-btn:hover {
+        background: #667eea;
+        transform: scale(1.1);
+      }
+
+      .video-control-btn.danger {
+        background: #ef4444;
+      }
+
+      /* 반응형 */
+      @media (max-width: 1400px) {
+        .sidebar {
+          width: 350px;
+        }
+        .right-panel {
+          width: 300px;
+        }
+      }
+
+      /* 스크롤바 스타일 */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
   </head>
   <body>
-    <h2>🎉 환영합니다! (로그인 성공)</h2>
-    <p>이 페이지는 로그인된 사용자만 접근할 수 있습니다.</p>
-    <button id="logoutButton">로그아웃</button>
+    <!-- 헤더 -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">🗺️ TripCanvas</div>
+        <div class="trip-title">서울-부산 2박 3일 여행</div>
+      </div>
+      <div class="header-right">
+        <div class="collab-users">
+          <div class="user-avatar" title="나">🧑</div>
+          <div class="user-avatar" title="김민수">김</div>
+          <div class="user-avatar" title="이지은">이</div>
+        </div>
+        <button class="btn btn-primary">💾 저장하기</button>
+        <button class="btn btn-secondary" id="logout-button">
+          🚪 로그아웃
+        </button>
+      </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <div class="main-container">
+      <!-- 왼쪽 사이드바 -->
+      <aside class="sidebar">
+        <div class="sidebar-tabs">
+          <button class="tab active">📍 경로</button>
+          <button class="tab">🎨 템플릿</button>
+          <button class="tab">📊 일정</button>
+        </div>
+
+        <div class="sidebar-content">
+          <!-- AI 플래너 -->
+          <div class="ai-planner">
+            <div class="section-title">🤖 AI 경로 생성</div>
+
+            <div class="input-group">
+              <label>출발지</label>
+              <input type="text" placeholder="예: 서울역" value="서울역" />
+            </div>
+
+            <div class="input-group">
+              <label>도착지</label>
+              <input type="text" placeholder="예: 부산역" value="부산역" />
+            </div>
+
+            <div class="input-group">
+              <label>여행 기간</label>
+              <input type="text" placeholder="예: 2박 3일" value="2박 3일" />
+            </div>
+
+            <div class="input-group">
+              <label>여행 스타일</label>
+              <div class="template-chips">
+                <div class="chip selected">🍜 맛집</div>
+                <div class="chip">🏛️ 역사</div>
+                <div class="chip">🏖️ 휴양</div>
+                <div class="chip">📸 사진</div>
+                <div class="chip">🛍️ 쇼핑</div>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>추가 요청사항</label>
+              <textarea
+                rows="3"
+                placeholder="예: 유명한 해산물 맛집 위주로, 아침에는 천천히 출발하고 싶어요"
+              ></textarea>
+            </div>
+
+            <button class="btn-generate">✨ AI로 경로 생성하기</button>
+          </div>
+
+          <!-- 생성된 장소 리스트 -->
+          <div class="places-list">
+            <div class="section-title">📍 추천 장소 (5개)</div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">1</span>
+                광안리 해변
+              </div>
+              <div class="place-description">
+                해운대와 함께 부산의 대표 해변. 광안대교 야경이 유명합니다.
+              </div>
+              <div class="place-tags">
+                <span class="tag">#사진스팟</span>
+                <span class="tag">#야경</span>
+                <span class="tag">#해변</span>
+              </div>
+            </div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">2</span>
+                자갈치 시장
+              </div>
+              <div class="place-description">
+                신선한 해산물을 직접 고르고 바로 조리해서 먹을 수 있는 전통 시장
+              </div>
+              <div class="place-tags">
+                <span class="tag">#맛집</span>
+                <span class="tag">#해산물</span>
+                <span class="tag">#전통시장</span>
+              </div>
+            </div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">3</span>
+                감천문화마을
+              </div>
+              <div class="place-description">
+                알록달록한 집들이 층층이 쌓인 한국의 산토리니
+              </div>
+              <div class="place-tags">
+                <span class="tag">#사진스팟</span>
+                <span class="tag">#예술</span>
+                <span class="tag">#마을</span>
+              </div>
+            </div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">4</span>
+                해운대 해수욕장
+              </div>
+              <div class="place-description">
+                한국에서 가장 유명한 해수욕장. 주변에 맛집과 카페가 많습니다.
+              </div>
+              <div class="place-tags">
+                <span class="tag">#해변</span>
+                <span class="tag">#휴양</span>
+              </div>
+            </div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">5</span>
+                태종대
+              </div>
+              <div class="place-description">
+                부산의 남단 절벽. 등대와 함께 탁 트인 바다 전망 감상
+              </div>
+              <div class="place-tags">
+                <span class="tag">#자연</span>
+                <span class="tag">#전망</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 중앙 지도 영역 -->
+      <main class="map-container">
+        <!-- 지도 툴바 -->
+        <div class="map-toolbar">
+          <button class="tool-btn active" title="이동">🖐️</button>
+          <button class="tool-btn" title="메모 작성">✏️</button>
+          <button class="tool-btn" title="하이라이트">🖍️</button>
+          <button class="tool-btn" title="텍스트">📝</button>
+          <button class="tool-btn" title="지우개">🧹</button>
+          <button class="tool-btn" title="실행 취소">↩️</button>
+        </div>
+
+        <div class="map-canvas">
+          <div class="map-placeholder">
+            <div class="map-placeholder-icon">🗺️</div>
+            <div>AI로 경로를 생성하면 여기에 지도가 표시됩니다</div>
+            <div style="margin-top: 8px; font-size: 14px">
+              지도 위에 메모를 작성하고 동행자들과 실시간으로 공유하세요!
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 오른쪽 패널 -->
+      <aside class="right-panel">
+        <div class="panel-tabs">
+          <button class="tab active">💬 채팅</button>
+          <button class="tab">📹 화상</button>
+          <button class="tab">💰 예산</button>
+        </div>
+
+        <div class="panel-content">
+          <!-- 채팅 섹션 -->
+          <div class="section-title">💬 실시간 협업 채팅</div>
+
+          <div class="chat-messages">
+            <div class="message">
+              <div class="message-author">김민수</div>
+              <div class="message-text">자갈치 시장 대신 송정 해변 어때요?</div>
+              <div class="message-time">3분 전</div>
+            </div>
+
+            <div class="message">
+              <div class="message-author">이지은</div>
+              <div class="message-text">
+                좋아요! 서핑도 할 수 있을 것 같아요 🏄
+              </div>
+              <div class="message-time">1분 전</div>
+            </div>
+
+            <div class="message">
+              <div class="message-author">나</div>
+              <div class="message-text">그럼 일정 수정해볼게요!</div>
+              <div class="message-time">방금</div>
+            </div>
+          </div>
+
+          <!-- WebRTC 화상 채팅 (숨김 상태) -->
+          <div class="video-chat" style="display: none">
+            <div class="video-grid">
+              <div class="video-tile">
+                🧑
+                <div class="video-name">나</div>
+              </div>
+              <div class="video-tile">
+                👤
+                <div class="video-name">김민수</div>
+              </div>
+              <div class="video-tile">
+                👤
+                <div class="video-name">이지은</div>
+              </div>
+            </div>
+            <div class="video-controls">
+              <button class="video-control-btn">🎤</button>
+              <button class="video-control-btn">📹</button>
+              <button class="video-control-btn">🖥️</button>
+              <button class="video-control-btn danger">📞</button>
+            </div>
+          </div>
+
+          <!-- 예산 트래커 (숨김 상태) -->
+          <div class="budget-section" style="display: none">
+            <div class="budget-summary">
+              <div class="budget-amount">₩523,000</div>
+              <div class="budget-label">총 사용 금액 / ₩800,000</div>
+            </div>
+
+            <div class="section-title">최근 지출 내역</div>
+
+            <div class="expense-item">
+              <div class="expense-info">
+                <div class="expense-name">KTX 왕복 티켓</div>
+                <div class="expense-category">#교통비</div>
+              </div>
+              <div class="expense-amount">₩120,000</div>
+            </div>
+
+            <div class="expense-item">
+              <div class="expense-info">
+                <div class="expense-name">호텔 2박</div>
+                <div class="expense-category">#숙박비</div>
+              </div>
+              <div class="expense-amount">₩280,000</div>
+            </div>
+
+            <div class="expense-item">
+              <div class="expense-info">
+                <div class="expense-name">자갈치 시장 회</div>
+                <div class="expense-category">#식비</div>
+              </div>
+              <div class="expense-amount">₩89,000</div>
+            </div>
+
+            <div class="expense-item">
+              <div class="expense-info">
+                <div class="expense-name">감천문화마을 입장</div>
+                <div class="expense-category">#관광비</div>
+              </div>
+              <div class="expense-amount">₩34,000</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input">
+          <input type="text" placeholder="메시지를 입력하세요..." />
+          <button>전송</button>
+        </div>
+      </aside>
+    </div>
 
     <script>
-      document
-        .getElementById("logoutButton")
-        .addEventListener("click", async () => {
-          try {
-            const response = await fetch("/auth/logout", { method: "GET" });
-            const data = await response.json();
+      // 탭 전환 기능
+      document.querySelectorAll(".sidebar-tabs .tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document
+            .querySelectorAll(".sidebar-tabs .tab")
+            .forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+        });
+      });
 
-            if (data.success && data.redirect) {
-              alert("로그아웃되었습니다.");
-              window.location.href = data.redirect; // 로그인 페이지로 이동
-            } else {
-              alert("로그아웃 처리에 문제가 발생했습니다.");
-            }
-          } catch (error) {
-            console.error("Logout fetch error:", error);
-            alert("로그아웃 중 네트워크 오류가 발생했습니다.");
+      document.querySelectorAll(".panel-tabs .tab").forEach((tab, index) => {
+        tab.addEventListener("click", () => {
+          document
+            .querySelectorAll(".panel-tabs .tab")
+            .forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+
+          // 패널 내용 전환
+          const chatMessages = document.querySelector(".chat-messages");
+          const videoChat = document.querySelector(".video-chat");
+          const budgetSection = document.querySelector(".budget-section");
+          const chatInput = document.querySelector(".chat-input");
+
+          chatMessages.style.display = "none";
+          videoChat.style.display = "none";
+          budgetSection.style.display = "none";
+          chatInput.style.display = "none";
+
+          if (index === 0) {
+            // 채팅
+            chatMessages.style.display = "block";
+            chatInput.style.display = "flex";
+          } else if (index === 1) {
+            // 화상
+            videoChat.style.display = "block";
+          } else if (index === 2) {
+            // 예산
+            budgetSection.style.display = "block";
           }
         });
+      });
+
+      // 템플릿 칩 선택
+      document.querySelectorAll(".chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          chip.classList.toggle("selected");
+        });
+      });
+
+      // 툴바 버튼
+      document.querySelectorAll(".tool-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tool-btn")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+        });
+      });
+
+      // 장소 아이템 클릭
+      document.querySelectorAll(".place-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          alert("지도에서 해당 장소로 이동합니다!");
+        });
+      });
+
+      // AI 경로 생성 버튼
+      document.querySelector(".btn-generate").addEventListener("click", () => {
+        document.querySelector(".map-placeholder").innerHTML =
+          '<div class="map-placeholder-icon">⏳</div>' +
+          "<div>AI가 최적의 경로를 생성하고 있습니다...</div>" +
+          '<div style="margin-top: 8px; font-size: 14px;">Gemini API가 여행 스타일을 분석 중입니다</div>';
+
+        setTimeout(() => {
+          document.querySelector(".map-placeholder").innerHTML =
+            '<div class="map-placeholder-icon">✅</div>' +
+            "<div>경로가 생성되었습니다!</div>" +
+            '<div style="margin-top: 8px; font-size: 14px;">실제 구현 시 Google Maps API를 통해 지도가 표시됩니다</div>';
+        }, 2000);
+      });
+
+      // 채팅 전송
+      document
+        .querySelector(".chat-input button")
+        .addEventListener("click", () => {
+          const input = document.querySelector(".chat-input input");
+          if (input.value.trim()) {
+            const messagesContainer = document.querySelector(".chat-messages");
+            const newMessage = document.createElement("div");
+            newMessage.className = "message";
+            newMessage.innerHTML = `
+                          <div class="message-author">나</div>
+                          <div class="message-text">${input.value}</div>
+                          <div class="message-time">방금</div>
+                      `;
+            messagesContainer.appendChild(newMessage);
+            input.value = "";
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          }
+        });
+
+      // Enter 키로 채팅 전송
+      document
+        .querySelector(".chat-input input")
+        .addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            document.querySelector(".chat-input button").click();
+          }
+        });
+
+      // Logout
+      document.addEventListener("DOMContentLoaded", () => {
+        const logoutButton = document.getElementById("logout-button");
+
+        if (logoutButton) {
+          logoutButton.addEventListener("click", async () => {
+            try {
+              // 서버의 '/auth/logout' 엔드포인트로 GET 요청 전송
+              const response = await fetch("/auth/logout", {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+
+              const data = await response.json();
+
+              if (data.success && data.redirect) {
+                // 서버에서 JWT 쿠키를 삭제했으므로, 클라이언트 페이지를 이동시킵니다.
+                window.location.href = data.redirect; // /login.html
+              } else {
+                alert("로그아웃 처리 중 오류가 발생했습니다.");
+              }
+            } catch (error) {
+              console.error("로그아웃 요청 실패:", error);
+              alert("서버 연결에 실패하여 로그아웃할 수 없습니다.");
+            }
+          });
+        }
+      });
     </script>
   </body>
 </html>
