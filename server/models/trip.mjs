@@ -16,20 +16,14 @@ const ai = new GoogleGenAI({ apiKey: google_api });
  */
 async function getCoordinatesFromKeyword(keyword) {
   // KAKAO_API 환경 변수 확인 로직 (유지)
-  if (!kakao_api) {
-    console.error(
-      "환경 변수 KAKAO_API가 설정되지 않았습니다. GeoCoding을 실행할 수 없습니다."
-    );
-    return { type: "Point", coordinates: [0, 0] };
-  }
 
-  const encodedQuery = encodeURIComponent(keyword); // 키워드 검색 엔드포인트 사용
+  const encodedQuery = encodeURIComponent(keyword);
   const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodedQuery}`;
 
   try {
     const response = await fetch(url, {
       headers: { Authorization: `KakaoAK ${kakao_api}` },
-    }); // 1. HTTP 상태 코드 확인 (응답이 성공적이었는지 확인)
+    });
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -41,7 +35,7 @@ async function getCoordinatesFromKeyword(keyword) {
 
     const data = await response.json();
     if (data.documents && data.documents.length > 0) {
-      const doc = data.documents[0]; // 카카오는 x(경도), y(위도)를 사용 -> GeoJSON [경도, 위도]
+      const doc = data.documents[0]; // 카카오는 x(경도), y(위도)를 사용
       return {
         type: "Point",
         coordinates: [parseFloat(doc.x), parseFloat(doc.y)],
@@ -53,10 +47,9 @@ async function getCoordinatesFromKeyword(keyword) {
       return { type: "Point", coordinates: [0, 0] };
     }
   } catch (error) {
-    // catch 블록에서 error 객체를 받도록 수정
     console.error(
       `[네트워크 오류] 장소/숙소 ${keyword} GeoCoding 실패:`,
-      error.message // error.message를 출력하도록 수정
+      error.message
     );
     return { type: "Point", coordinates: [0, 0] };
   }
@@ -64,37 +57,62 @@ async function getCoordinatesFromKeyword(keyword) {
 
 /**
  * Gemini에서 생성한 여행 데이터에 GeoJSON 좌표를 추가합니다.
- * @param {Object} tripData - Gemini에서 반환된 JSON 객체
+ * ❗ 이 함수는 Gemini 응답 JSON의 영문 키 ('tripSchedule', 'accommodation', 'dailyPlaces', 'uniqueName', 'name')에 맞춰 수정되었습니다.
+ * ❗ Gemini 스키마에 따라 좌표 배열 ([경도, 위도])만 해당 'coordinates' 객체에 저장합니다.
+ * * @param {Object} tripData - Gemini에서 반환된 JSON 객체
  * @returns {Promise<Object>} GeoJSON 좌표가 추가된 JSON 객체
  */
 async function addGeoJSONToTripData(tripData) {
   console.log("📍 장소별 GeoJSON 좌표 변환 시작...");
-  for (const day of tripData.days) {
-    // 병렬로 API를 호출하여 속도를 높일 수 있지만, 여기서는 간단하게 순차 처리합니다.
-    for (const activity of day.activities) {
-      const placeName = activity.placeName;
 
-      // Geocoding API 호출
-      const geoJsonLocation = await getCoordinatesFromKeyword(placeName);
+  // tripData.tripSchedule 배열을 순회합니다.
+  for (const day of tripData.tripSchedule) {
+    // 1. 일일 장소 (dailyPlaces) 좌표 추가
+    if (day.dailyPlaces) {
+      for (const place of day.dailyPlaces) {
+        const placeName = place.uniqueName; // 고유 이름 사용
 
-      // GeoJSON 필드 추가
-      activity.location = geoJsonLocation;
-      console.log(
-        `  - ${placeName} 좌표 추가 완료: [${geoJsonLocation.coordinates}]`
-      );
+        // Geocoding API 호출
+        const geoJsonLocation = await getCoordinatesFromKeyword(placeName);
+
+        // 💡 2차 검색 시도: 좌표가 0, 0일 경우 목적지(지역)를 추가하여 재검색
+        if (
+          geoJsonLocation.coordinates[0] === 0 &&
+          geoJsonLocation.coordinates[1] === 0
+        ) {
+          const fallbackName = `${destination} ${placeName}`; // 예: "광주 육미백반"
+          console.warn(`2차 검색 시도: ${fallbackName}`);
+          geoJsonLocation = await getCoordinatesFromKeyword(fallbackName);
+        }
+
+        // Gemini 스키마의 'coordinates' 객체에 [경도, 위도]를 저장
+        place.coordinates = {
+          latitude: geoJsonLocation.coordinates[1], // 위도
+          longitude: geoJsonLocation.coordinates[0], // 경도
+        };
+
+        console.log(
+          `  [Day ${day.day}] ${placeName} 좌표 추가 완료: [${place.coordinates.longitude}, ${place.coordinates.latitude}]`
+        );
+      }
     }
 
-    // 숙소 지오 정보 가져오기
-    const accommodationName = day.accommodation;
-    if (accommodationName) {
+    // 2. 숙소 (accommodation) 좌표 추가
+    if (day.accommodation && day.accommodation.name) {
+      const accommodationName = day.accommodation.name; // 숙소 이름 사용
+
       const geoJsonAccommodationLocation = await getCoordinatesFromKeyword(
         accommodationName
       );
 
-      // 새로운 필드 'accommodationLocation'에 GeoJSON 객체 저장
-      day.accommodationLocation = geoJsonAccommodationLocation;
+      // Gemini 스키마의 'accommodation.coordinates' 객체에 [경도, 위도]를 저장
+      day.accommodation.coordinates = {
+        latitude: geoJsonAccommodationLocation.coordinates[1], // 위도
+        longitude: geoJsonAccommodationLocation.coordinates[0], // 경도
+      };
+
       console.log(
-        `  - ${accommodationName} (숙소) 좌표 추가 완료: [${geoJsonAccommodationLocation.coordinates}]`
+        `  [Day ${day.day}] ${accommodationName} (숙소) 좌표 추가 완료: [${day.accommodation.coordinates.longitude}, ${day.accommodation.coordinates.latitude}]`
       );
     }
   }
@@ -105,91 +123,220 @@ async function addGeoJSONToTripData(tripData) {
 /**
  * Gemini API를 사용하여 여행 계획을 생성하는 함수
  * @param {string} destination - 여행 목적지
- * @param {string} budget - 예산
- * @param {string} during - 여행 기한
+ * @param {Date} startDate - 여행 시작일
+ * @param {Date} endDate - 여행 종료일
+ * @param {number} budget - 예산
  * @param {string} interests - 원하는 테마 또는 흥미
+ * @param {number} peoplecnt - 총 인원수
  */
-async function generateTripCanvas(destination, during, budget, interests) {
-  console.log(`✨ ${destination} 여행 계획 생성 중...`);
-  const prompt = `당신은 한국 여행 플래너입니다. 목적지는 ${destination}인 ${during}일 여행 일정을 ${budget}원의 예산으로 생성해 주세요. 여행자는 "${interests}"에 관심이 많습니다.
-  각 날짜별로 주요 장소와 간단한 설명, 주요 장소 근처의 지하철역, 주요장소 근처의 숙박시설을 추천하고 'tripcanvas'에서 활용할 수 있는 JSON 형식의 데이터만 출력하세요.
-  **제약조건**
-  1. activities안의 주요장소는 1곳만 추천 / 예) 가능 : 여수낭만포차거리, 불가능 : 종포해양공원 & 여수 낭만포차거리
-  1-1. 장소이름 옆에 "(포차존)"과 같은 부가적인 설명 빼기 -> 카카오맵에서 검색 가능하게 하기 위해
-  2. 숙박시설은 카카오맵에서 검색가능한 숙박시설을 추천
-  3. day안에 activities는 최대 3개까지만 추천 -> 판단하에 1개, 2개, 3개 가능`;
+async function generateTripCanvas(
+  destination,
+  startDate,
+  endDate,
+  budget,
+  interests,
+  peoplecnt
+) {
+  const startStr = startDate.toISOString().split("T")[0];
+  const endStr = endDate.toISOString().split("T")[0];
+
+  const oneDay = 1000 * 60 * 60 * 24;
+  const daysDifference =
+    Math.round((endDate.getTime() - startDate.getTime()) / oneDay) + 1;
+  const totalDays = `${daysDifference}일`;
+
+  const prompt = `**입력 정보:**
+
+* **목적지:** ${destination}
+* **여행 시작일:** ${startStr}
+* **여행 종료일:** ${endStr}
+* **총 여행 일수:** ${totalDays}
+* **총 예산:** ${budget}원
+* **관심사:** ${interests}
+* **총 인원:** ${peoplecnt}명
+
+**출력 형식 제약 조건 (필수 준수 사항):**
+
+1.  출력은 반드시 **단일 JSON 객체** 형태여야 합니다.
+2.  모든 장소와 숙소는 카카오맵에서 정확히 일치하는 단일 검색 결과를 찾을 수 있는 실제 장소여야 합니다. 검색 결과가 모호하거나 여러 개인 장소는 제외하고, 반드시 고유한 상호명 (Brand Name)을 사용하십시오.
+3.  **장소 고유 이름** (uniqueName) 필드에는 장소 자체의 이름 (예: '익선동 한옥마을', 'N서울타워')만 포함해야 하며, '탐방', '방문', '체험', '투어' 등의 행위나 테마 관련 단어는 절대 포함하지 마십시오.
+4.  **숙소 고유 이름**에도 부가적인 설명이나 '&'를 사용한 묶음 행위는 **절대 금지**합니다. 오직 고유 이름만 포함합니다.
+5.  **숙소**는 **장소** 근처의 실제 존재하는 펜션, 호텔, 게스트하우스 등을 추천합니다.
+5.  모든 장소 항목에는 **고유 이름, 설명, 예상 소비 금액, 좌표 (위도/경도), 가까운 지하철역** 정보가 포함되어야 합니다. 가까운 지하철역이 없으면 '없음'으로 표기합니다.
+6.  모든 숙소 항목에는 **이름, 설명, 예상 소비 금액, 좌표 (위도/경도), 가까운 지하철역** 정보가 포함되어야 합니다.
+7.  총 예상 비용은 총 예산을 초과하지 않도록 계획합니다.
+
+당신은 한국여행 플래너입니다. 위의 입력 정보에 맞게 여행계획을 세워주세요. 제약조건도 고려하여 계획해 주시길 바랍니다.
+숙소는 ${startStr}부터 ${endStr}까지 ${destination}근처의 ${peoplecnt}명 기준으로 찾아줘. hotels도구를 이용하여 실제 있는 곳으로 추천해줘 
+`;
 
   try {
+    // 2. Gemini API 호출
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
+        // ❗ 영문 키가 적용된 Schema ❗
         responseSchema: {
           type: "object",
           properties: {
-            tripTitle: { type: "string" },
-            days: {
+            tripOverview: {
+              type: "object",
+              properties: {
+                destination: { type: "string" },
+                days: { type: "string" },
+                startDate: {
+                  type: "string",
+                  description:
+                    "여행 시작 날짜를 YYYY-MM-DD 형식으로 포함합니다.",
+                },
+                endDate: {
+                  type: "string",
+                  description:
+                    "여행 종료 날짜를 YYYY-MM-DD 형식으로 포함합니다.",
+                },
+                totalPeople: { type: "number" },
+                totalEstimatedCost: { type: "number" },
+              },
+              required: [
+                "destination",
+                "days",
+                "startDate",
+                "endDate",
+                "totalPeople",
+                "totalEstimatedCost",
+              ],
+            },
+            tripSchedule: {
               type: "array",
               items: {
                 type: "object",
                 properties: {
                   day: { type: "number" },
-                  theme: { type: "string" },
-                  activities: {
-                    type: "array",
-                    // ⭐⭐ 이 부분이 추가/수정되었습니다!
-                    items: {
-                      type: "object", // activities 배열의 각 항목은 문자열입니다.
-                      description: "해당 날짜의 구체적인 활동이나 장소 정보",
-                      properties: {
-                        placeName: {
-                          type: "string",
-                          description: "주요 장소 이름",
+                  accommodation: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      description: { type: "string" },
+                      estimatedCost: { type: "number" },
+                      coordinates: {
+                        type: "object",
+                        properties: {
+                          latitude: { type: "number" },
+                          longitude: { type: "number" },
                         },
-                        description: {
-                          type: "string",
-                          description: "장소에 대한 간단한 설명",
-                        },
-                        subwayStation: {
-                          type: "string",
-                          description: "장소 근처의 지하철역 이름",
-                        },
+                        required: ["latitude", "longitude"],
                       },
-                      required: ["placeName", "description", "subwayStation"],
+                      nearbySubwayStation: { type: "string" },
+                    },
+                    required: [
+                      "name",
+                      "description",
+                      "estimatedCost",
+                      "coordinates",
+                      "nearbySubwayStation",
+                    ],
+                  },
+                  dailyPlaces: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        uniqueName: { type: "string" },
+                        description: { type: "string" },
+                        estimatedCost: { type: "number" },
+                        coordinates: {
+                          type: "object",
+                          properties: {
+                            latitude: { type: "number" },
+                            longitude: { type: "number" },
+                          },
+                          required: ["latitude", "longitude"],
+                        },
+                        nearbySubwayStation: { type: "string" },
+                      },
+                      required: [
+                        "uniqueName",
+                        "description",
+                        "estimatedCost",
+                        "coordinates",
+                        "nearbySubwayStation",
+                      ],
                     },
                   },
-                  accommodation: {
-                    type: "string",
-                    description: "해당 날짜에 추천하는 숙박 시설 이름",
-                  },
                 },
-                required: ["day", "theme", "activities", "accommodation"],
+                required: ["day", "accommodation", "dailyPlaces"],
               },
             },
           },
-          required: ["tripTitle", "days"],
+          required: ["tripOverview", "tripSchedule"],
         },
       },
     });
+
     // 3. 응답에서 JSON 문자열을 가져와 파싱
     const tripData = JSON.parse(response.text);
-    // 4. TripCanvas 로직에 데이터 전달 (가상의 tripcanvas 함수)
+
+    // 4. TripCanvas 로직에 데이터 전달
     console.log("\n✅ Gemini API 응답 수신 완료.");
+    // 응답으로 받은 장소/숙소 이름으로 좌표를 찾는 로직 (가정)
     const geoLocatedTripData = await addGeoJSONToTripData(tripData);
     processTripCanvas(geoLocatedTripData);
+
+    return geoLocatedTripData;
   } catch (error) {
     console.error("Gemini API 호출 중 오류 발생:", error);
+    throw new Error("여행 계획을 생성하는 데 실패했습니다.");
   }
 }
+
+/**
+ * 최종 여행 계획 데이터를 처리하는 함수
+ * (실제 환경에서는 웹 UI 렌더링 또는 데이터베이스 저장 로직이 구현됩니다.)
+ * @param {object} data - Gemini API에서 반환된 여행 계획 데이터 (영문 키)
+ */
 function processTripCanvas(data) {
-  // 여기에 실제 tripcanvas 라이브러리를 import하여 데이터를 활용하는 로직을 구현합니다.
-  // 예: TripCanvas.render(data);
+  // 1. 필요한 정보 추출 및 제목 생성
+  const destination = data.tripOverview.destination;
+  const totalDays = data.tripSchedule.length; // tripSchedule 배열의 길이를 사용 (실제 일정 일수)
+  const tripDuration = data.tripOverview.days; // "N일" 형태의 문자열
+
+  // 2. 제목 정의
+  const generatedTitle = `${destination} ${tripDuration} 여행 계획`;
+
+  // 3. 콘솔 출력
   console.log("-----------------------------------------");
-  console.log("TripCanvas에 전달된 데이터의 제목:", data.tripTitle);
-  console.log(`TripCanvas에서 ${data.days.length}일 일정을 렌더링 준비.`);
+  console.log("✨ TripCanvas에 전달된 최종 데이터 ✨");
+  console.log(`**여행 제목 (동적 생성):** ${generatedTitle}`);
+  console.log(`**총 여행 일수 (렌더링 준비):** ${totalDays}일`);
+
+  // 데이터를 보기 좋게 JSON 문자열로 변환하여 출력
   console.log(JSON.stringify(data, null, 2));
   console.log("-----------------------------------------");
+
+  // 여기에 실제 TripCanvas 라이브러리 렌더링 로직을 구현합니다.
+  // 예: TripCanvas.render(data);
 }
 
-generateTripCanvas("수원", "1", "150000", "조용하게 힐링할 수 있는");
+const destination = "군산";
+const startDate = new Date("2025-12-13");
+const endDate = new Date("2025-12-14");
+const budget = 300000;
+const interests = "바다의 풍경을 즐길 수 있는";
+const peoplecnt = 2;
+
+const oneDay = 1000 * 60 * 60 * 24;
+const daysDifference =
+  Math.round((endDate.getTime() - startDate.getTime()) / oneDay) + 1;
+const totalDays = `${daysDifference}일`;
+
+console.log(`${destination} ${totalDays} 일정 생성 중...`);
+generateTripCanvas(
+  destination,
+  startDate,
+  endDate,
+  budget,
+  interests,
+  peoplecnt
+);
