@@ -101,16 +101,17 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
 
-      .btn-secondary {
-        background: #fff;
-        color: #667eea; /* 빨간색 텍스트 */
-        border: 1px solid #611be4; /* 빨간색 테두리 */
+      .btn-logout {
+        /* 로그아웃 버튼 스타일 */
+        background: #f4f5f7;
+        color: #764ba2;
+        border: 1px solid #764ba2;
       }
 
-      .btn-secondary:hover {
-        color: #667eea;
+      .btn-logout:hover {
+        background: #e2e8f0;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
 
       /* 메인 레이아웃 */
@@ -597,7 +598,6 @@
     </style>
   </head>
   <body>
-    <!-- 헤더 -->
     <header class="header">
       <div class="header-left">
         <div class="logo">🗺️ TripCanvas</div>
@@ -605,47 +605,37 @@
       </div>
       <div class="header-right">
         <div class="collab-users">
-          <div class="user-avatar" title="나">🧑</div>
+          <div class="user-avatar" title="나" id="current-user-avatar">🧑</div>
           <div class="user-avatar" title="김민수">김</div>
           <div class="user-avatar" title="이지은">이</div>
         </div>
+        <button class="btn btn-logout" id="logout-btn">🚪 로그아웃</button>
         <button class="btn btn-primary">💾 저장하기</button>
-        <button class="btn btn-secondary" id="logout-button">
-          🚪 로그아웃
-        </button>
       </div>
     </header>
 
-    <!-- 메인 컨테이너 -->
     <div class="main-container">
-      <!-- 왼쪽 사이드바 -->
       <aside class="sidebar">
         <div class="sidebar-tabs">
           <button class="tab active">📍 경로</button>
           <button class="tab">🎨 템플릿</button>
           <button class="tab">📊 일정</button>
         </div>
-
         <div class="sidebar-content">
-          <!-- AI 플래너 -->
           <div class="ai-planner">
             <div class="section-title">🤖 AI 경로 생성</div>
-
             <div class="input-group">
               <label>출발지</label>
               <input type="text" placeholder="예: 서울역" value="서울역" />
             </div>
-
             <div class="input-group">
               <label>도착지</label>
               <input type="text" placeholder="예: 부산역" value="부산역" />
             </div>
-
             <div class="input-group">
               <label>여행 기간</label>
               <input type="text" placeholder="예: 2박 3일" value="2박 3일" />
             </div>
-
             <div class="input-group">
               <label>여행 스타일</label>
               <div class="template-chips">
@@ -656,7 +646,6 @@
                 <div class="chip">🛍️ 쇼핑</div>
               </div>
             </div>
-
             <div class="input-group">
               <label>추가 요청사항</label>
               <textarea
@@ -664,14 +653,10 @@
                 placeholder="예: 유명한 해산물 맛집 위주로, 아침에는 천천히 출발하고 싶어요"
               ></textarea>
             </div>
-
             <button class="btn-generate">✨ AI로 경로 생성하기</button>
           </div>
-
-          <!-- 생성된 장소 리스트 -->
           <div class="places-list">
             <div class="section-title">📍 추천 장소 (5개)</div>
-
             <div class="place-item">
               <div class="place-name">
                 <span class="place-number">1</span>
@@ -686,7 +671,6 @@
                 <span class="tag">#해변</span>
               </div>
             </div>
-
             <div class="place-item">
               <div class="place-name">
                 <span class="place-number">2</span>
@@ -701,7 +685,6 @@
                 <span class="tag">#전통시장</span>
               </div>
             </div>
-
             <div class="place-item">
               <div class="place-name">
                 <span class="place-number">3</span>
@@ -716,7 +699,6 @@
                 <span class="tag">#마을</span>
               </div>
             </div>
-
             <div class="place-item">
               <div class="place-name">
                 <span class="place-number">4</span>
@@ -730,7 +712,6 @@
                 <span class="tag">#휴양</span>
               </div>
             </div>
-
             <div class="place-item">
               <div class="place-name">
                 <span class="place-number">5</span>
@@ -748,9 +729,7 @@
         </div>
       </aside>
 
-      <!-- 중앙 지도 영역 -->
       <main class="map-container">
-        <!-- 지도 툴바 -->
         <div class="map-toolbar">
           <button class="tool-btn active" title="이동">🖐️</button>
           <button class="tool-btn" title="메모 작성">✏️</button>
@@ -771,7 +750,6 @@
         </div>
       </main>
 
-      <!-- 오른쪽 패널 -->
       <aside class="right-panel">
         <div class="panel-tabs">
           <button class="tab active">💬 채팅</button>
@@ -780,7 +758,6 @@
         </div>
 
         <div class="panel-content">
-          <!-- 채팅 섹션 -->
           <div class="section-title">💬 실시간 협업 채팅</div>
 
           <div class="chat-messages">
@@ -805,7 +782,6 @@
             </div>
           </div>
 
-          <!-- WebRTC 화상 채팅 (숨김 상태) -->
           <div class="video-chat" style="display: none">
             <div class="video-grid">
               <div class="video-tile">
@@ -829,7 +805,6 @@
             </div>
           </div>
 
-          <!-- 예산 트래커 (숨김 상태) -->
           <div class="budget-section" style="display: none">
             <div class="budget-summary">
               <div class="budget-amount">₩523,000</div>
@@ -880,6 +855,69 @@
     </div>
 
     <script>
+      // API 기본 URL 설정 (백엔드 서버 주소)
+      const API_BASE_URL = "http://localhost:5000/api/auth";
+      const logoutBtn = document.getElementById("logout-btn");
+      const currentUserAvatar = document.getElementById("current-user-avatar");
+
+      /**
+       * 🚨 [추가된 로직] 로그아웃 처리 함수
+       * 서버에 로그아웃 요청을 보내 쿠키를 삭제하고 로그인 페이지로 이동합니다.
+       */
+      async function handleLogout() {
+        if (!confirm("정말로 로그아웃 하시겠습니까?")) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/logout`, {
+            method: "POST",
+            // 서버가 쿠키를 삭제하도록 요청합니다.
+          });
+
+          if (response.ok) {
+            // 클라이언트 측에서 저장된 모든 상태를 제거합니다.
+            localStorage.removeItem("userId");
+            localStorage.removeItem("username");
+
+            alert("로그아웃 되었습니다.");
+            // 로그인 페이지로 리다이렉션
+            window.location.href = "login.html";
+          } else {
+            const errorData = await response.json();
+            alert(`로그아웃 실패: ${errorData.message || "서버 오류"}`);
+          }
+        } catch (error) {
+          console.error("Logout error:", error);
+          alert("네트워크 오류로 로그아웃에 실패했습니다.");
+        }
+      }
+
+      // 🚨 [추가된 로직] 로그아웃 버튼에 이벤트 리스너 연결
+      logoutBtn.addEventListener("click", handleLogout);
+
+      // 🚨 [추가된 로직] 로그인 사용자 정보 표시 (username)
+      function displayUserInfo() {
+        const username = localStorage.getItem("username");
+        const userId = localStorage.getItem("userId");
+
+        if (username) {
+          currentUserAvatar.title = `${username}님`;
+          // 아바타에 첫 글자 표시 (예: 홍길동 -> 홍)
+          currentUserAvatar.textContent = username.charAt(0);
+        } else if (userId) {
+          currentUserAvatar.title = `${userId}님`;
+          currentUserAvatar.textContent = userId.charAt(0).toUpperCase();
+        } else {
+          // 로그인 상태가 아닐 경우 로그인 페이지로 강제 리다이렉션 (권장)
+          // alert("로그인 정보가 없습니다. 로그인 페이지로 이동합니다.");
+          window.location.href = "login.html";
+        }
+      }
+
+      // 페이지 로드 시 사용자 정보 표시
+      displayUserInfo();
+
       // 탭 전환 기능
       document.querySelectorAll(".sidebar-tabs .tab").forEach((tab) => {
         tab.addEventListener("click", () => {
@@ -902,25 +940,38 @@
           const videoChat = document.querySelector(".video-chat");
           const budgetSection = document.querySelector(".budget-section");
           const chatInput = document.querySelector(".chat-input");
+          const sectionTitle = document.querySelector(
+            ".right-panel .section-title"
+          );
 
-          chatMessages.style.display = "none";
-          videoChat.style.display = "none";
-          budgetSection.style.display = "none";
-          chatInput.style.display = "none";
+          // 모든 섹션 숨김
+          const allPanelContent = document.querySelectorAll(
+            ".right-panel .panel-content > div:not(.section-title)"
+          );
+          allPanelContent.forEach((el) => (el.style.display = "none"));
 
+          // 제목과 입력창 표시/숨김 처리
           if (index === 0) {
             // 채팅
             chatMessages.style.display = "block";
             chatInput.style.display = "flex";
+            sectionTitle.textContent = "💬 실시간 협업 채팅";
           } else if (index === 1) {
             // 화상
             videoChat.style.display = "block";
+            chatInput.style.display = "none";
+            sectionTitle.textContent = "📹 실시간 화상 회의";
           } else if (index === 2) {
             // 예산
             budgetSection.style.display = "block";
+            chatInput.style.display = "none";
+            sectionTitle.textContent = "💰 예산 트래커";
           }
         });
       });
+      // 초기 로드 시 채팅 섹션 제목 표시를 위해 추가
+      document.querySelector(".right-panel .section-title").textContent =
+        "💬 실시간 협업 채팅";
 
       // 템플릿 칩 선택
       document.querySelectorAll(".chip").forEach((chip) => {
@@ -971,10 +1022,10 @@
             const newMessage = document.createElement("div");
             newMessage.className = "message";
             newMessage.innerHTML = `
-                          <div class="message-author">나</div>
-                          <div class="message-text">${input.value}</div>
-                          <div class="message-time">방금</div>
-                      `;
+                      <div class="message-author">나</div>
+                      <div class="message-text">${input.value}</div>
+                      <div class="message-time">방금</div>
+                  `;
             messagesContainer.appendChild(newMessage);
             input.value = "";
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -989,37 +1040,6 @@
             document.querySelector(".chat-input button").click();
           }
         });
-
-      // Logout
-      document.addEventListener("DOMContentLoaded", () => {
-        const logoutButton = document.getElementById("logout-button");
-
-        if (logoutButton) {
-          logoutButton.addEventListener("click", async () => {
-            try {
-              // 서버의 '/auth/logout' 엔드포인트로 GET 요청 전송
-              const response = await fetch("/auth/logout", {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              });
-
-              const data = await response.json();
-
-              if (data.success && data.redirect) {
-                // 서버에서 JWT 쿠키를 삭제했으므로, 클라이언트 페이지를 이동시킵니다.
-                window.location.href = data.redirect; // /login.html
-              } else {
-                alert("로그아웃 처리 중 오류가 발생했습니다.");
-              }
-            } catch (error) {
-              console.error("로그아웃 요청 실패:", error);
-              alert("서버 연결에 실패하여 로그아웃할 수 없습니다.");
-            }
-          });
-        }
-      });
     </script>
   </body>
 </html>

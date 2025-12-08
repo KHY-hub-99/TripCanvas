@@ -4,6 +4,7 @@ import "dotenv/config";
 const connectDB = async () => {
   try {
     const mongoURI = process.env.DBURL; // **<-- 여기에 MongoDB 연결 문자열을 넣으세요**
+    console.log(mongoURI);
     await mongoose.connect(mongoURI);
     console.log(`✅ MongoDB 연결 성공!`);
   } catch (error) {
