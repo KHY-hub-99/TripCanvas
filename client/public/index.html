@@ -887,26 +887,63 @@
       logoutBtn.addEventListener("click", handleLogout);
 
       // 🚨 [추가된 로직] 로그인 사용자 정보 표시 (username)
-      function displayUserInfo() {
-        const username = localStorage.getItem("username");
-        const userId = localStorage.getItem("userId");
+      async function checkAuthenticationAndDisplayInfo() {
+        const currentUserAvatar = document.getElementById(
+          "current-user-avatar"
+        );
 
-        if (username) {
-          currentUserAvatar.title = `${username}님`;
-          // 아바타에 첫 글자 표시 (예: 홍길동 -> 홍)
-          currentUserAvatar.textContent = username.charAt(0);
-        } else if (userId) {
-          currentUserAvatar.title = `${userId}님`;
-          currentUserAvatar.textContent = userId.charAt(0).toUpperCase();
-        } else {
-          // 로그인 상태가 아닐 경우 로그인 페이지로 강제 리다이렉션 (권장)
-          // alert("로그인 정보가 없습니다. 로그인 페이지로 이동합니다.");
-          window.location.href = "login.html";
+        // 1. 서버에 토큰 유효성 검사 요청 (GET /api/auth/me)
+        try {
+          const response = await fetch(`${API_BASE_URL}/me`, {
+            method: "GET",
+            // 백엔드가 JWT 토큰을 쿠키로 관리하므로,
+            // 요청 시 쿠키가 자동으로 포함되거나 (same-origin),
+            // CORS 환경에서는 'include' 옵션을 사용해야 합니다.
+            credentials: "include",
+          });
+
+          if (response.ok) {
+            // 200 OK: 서버가 토큰을 확인하고 유효하다고 응답함 (로그인 상태 유지)
+            const userData = await response.json();
+
+            // 사용자 정보 표시
+            const nameToDisplay =
+              userData.username || userData.nickname || userData.userId;
+            currentUserAvatar.title = `${nameToDisplay}님`;
+            currentUserAvatar.textContent = nameToDisplay.charAt(0);
+
+            // 로컬 스토리지에 데이터가 없었다면 업데이트 (로그아웃 시 로컬 스토리지도 정리되는 것이 이상적)
+            localStorage.setItem("userId", userData.userId);
+            localStorage.setItem("username", userData.username);
+          } else if (response.status === 401 || response.status === 403) {
+            // 401 Unauthorized: 서버가 토큰이 없거나 유효하지 않다고 응답함 (수동 삭제 감지)
+
+            console.error(
+              `인증 실패 (${response.status} 응답). 로그인 페이지로 이동.`
+            );
+
+            // 로컬 정보도 정리 (완벽한 로그아웃 상태를 위해)
+            localStorage.removeItem("userId");
+            localStorage.removeItem("username");
+
+            // 🚨 핵심: 로그인 페이지로 강제 이동
+            window.location.href = "login.html";
+          } else {
+            console.error(
+              "인증 확인 중 예상치 못한 서버 오류:",
+              response.status
+            );
+            // 필요시 오류 메시지 표시
+          }
+        } catch (error) {
+          console.error("네트워크 요청 실패. 서버 연결 문제:", error);
+          // 서버가 켜져 있지 않을 경우 등, 네트워크 오류 시 처리
+          // window.location.href = "login.html"; // 강력하게 리다이렉션
         }
       }
 
       // 페이지 로드 시 사용자 정보 표시
-      displayUserInfo();
+      checkAuthenticationAndDisplayInfo();
 
       // 탭 전환 기능
       document.querySelectorAll(".sidebar-tabs .tab").forEach((tab) => {

@@ -113,4 +113,20 @@ router.post("/logout", protect, (req, res) => {
     .json({ message: `${req.user.nickname}님, 로그아웃에 성공했습니다.` });
 });
 
+/**
+ * @desc    현재 로그인된 사용자 정보 조회 (토큰 유효성 검사 목적)
+ * @route   GET /api/auth/me
+ * @access  Private
+ */
+router.get("/me", protect, (req, res) => {
+  // protect 미들웨어를 통과했으므로, 토큰은 유효하고 req.user에 사용자 정보가 있습니다.
+  res.status(200).json({
+    _id: req.user._id,
+    userId: req.user.userId,
+    email: req.user.email,
+    nickname: req.user.nickname,
+    username: req.user.username,
+  });
+});
+
 export default router;
