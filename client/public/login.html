@@ -130,10 +130,11 @@
         messageDiv.style.borderColor = isSuccess ? "#00cc00" : "#ff0000";
 
         if (isSuccess) {
+          localStorage.setItem("userId", data.userId || data.username);
+          localStorage.setItem("username", data.username || data.nickname);
+          console.log("✅ 로그인 성공, 리다이렉션 시도 중:", "index.html");
           const welcomeName = data.username || data.nickname || data.userId;
           // 로그인 성공 시, 사용자 상태 저장 후 리다이렉션 (예시)
-          alert(`로그인 성공! ${welcomeName}님 환영합니다.`);
-          // window.location.href = 'dashboard.html'; // 실제 대시보드 페이지로 이동
           window.location.href = "index.html";
         }
       }
