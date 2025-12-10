@@ -42,13 +42,13 @@ async function getCoordinatesFromKeyword(keyword) {
       };
     } else {
       console.warn(
-        `[GeoCoding 경고] 장소/숙소 "${keyword}"에 대한 검색 결과가 없습니다.`
+        `[GeoCoding 경고] 장소 "${keyword}"에 대한 검색 결과가 없습니다.`
       );
       return { type: "Point", coordinates: [0, 0] };
     }
   } catch (error) {
     console.error(
-      `[네트워크 오류] 장소/숙소 ${keyword} GeoCoding 실패:`,
+      `[네트워크 오류] 장소 ${keyword} GeoCoding 실패:`,
       error.message
     );
     return { type: "Point", coordinates: [0, 0] };
@@ -57,7 +57,7 @@ async function getCoordinatesFromKeyword(keyword) {
 
 /**
  * Gemini에서 생성한 여행 데이터에 GeoJSON 좌표를 추가합니다.
- * ❗ 이 함수는 Gemini 응답 JSON의 영문 키 ('tripSchedule', 'accommodation', 'dailyPlaces', 'uniqueName', 'name')에 맞춰 수정되었습니다.
+ * ❗ 이 함수는 Gemini 응답 JSON의 영문 키 ('tripSchedule', ' 'dailyPlaces', 'uniqueName', 'name')에 맞춰 수정되었습니다.
  * ❗ Gemini 스키마에 따라 좌표 배열 ([경도, 위도])만 해당 'coordinates' 객체에 저장합니다.
  * * @param {Object} tripData - Gemini에서 반환된 JSON 객체
  * @returns {Promise<Object>} GeoJSON 좌표가 추가된 JSON 객체
@@ -72,50 +72,39 @@ async function addGeoJSONToTripData(tripData) {
       for (const place of day.dailyPlaces) {
         const placeName = place.uniqueName; // 고유 이름 사용
 
-        // Geocoding API 호출
+        // 1차 Geocoding API 호출
+        // Note: 2차 검색을 시도하지 않으므로, geoJsonLocation은 const로 다시 선언 가능하지만,
+        // 일관성을 위해 let을 유지하거나 const로 변경할 수 있습니다. 여기서는 const로 변경합니다.
         const geoJsonLocation = await getCoordinatesFromKeyword(placeName);
 
-        // 💡 2차 검색 시도: 좌표가 0, 0일 경우 목적지(지역)를 추가하여 재검색
-        if (
-          geoJsonLocation.coordinates[0] === 0 &&
-          geoJsonLocation.coordinates[1] === 0
-        ) {
-          const fallbackName = `${destination} ${placeName}`; // 예: "광주 육미백반"
-          console.warn(`2차 검색 시도: ${fallbackName}`);
-          geoJsonLocation = await getCoordinatesFromKeyword(fallbackName);
+        let latitude = geoJsonLocation.coordinates[1];
+        let longitude = geoJsonLocation.coordinates[0];
+
+        // 2. 최종 좌표 확인 및 null 처리
+        // Kakao API에서 검색 결과가 없을 경우 getCoordinatesFromKeyword 함수는 [0, 0]을 반환합니다.
+        if (latitude === 0 && longitude === 0) {
+          console.error(
+            `❌ [Day ${day.day}] 장소 "${placeName}"에 대한 유효한 좌표를 찾을 수 없습니다. null 처리합니다.`
+          );
+          latitude = null;
+          longitude = null;
         }
 
-        // Gemini 스키마의 'coordinates' 객체에 [경도, 위도]를 저장
+        // Gemini 스키마의 'coordinates' 객체에 [위도, 경도]를 저장
         place.coordinates = {
-          latitude: geoJsonLocation.coordinates[1], // 위도
-          longitude: geoJsonLocation.coordinates[0], // 경도
+          latitude: latitude, // 위도 (y)
+          longitude: longitude, // 경도 (x)
         };
 
-        console.log(
-          `  [Day ${day.day}] ${placeName} 좌표 추가 완료: [${place.coordinates.longitude}, ${place.coordinates.latitude}]`
-        );
+        if (latitude !== null) {
+          console.log(
+            `  [Day ${day.day}] ${placeName} 좌표 추가 완료: [${longitude}, ${latitude}]`
+          );
+        }
       }
     }
-
-    // 2. 숙소 (accommodation) 좌표 추가
-    if (day.accommodation && day.accommodation.name) {
-      const accommodationName = day.accommodation.name; // 숙소 이름 사용
-
-      const geoJsonAccommodationLocation = await getCoordinatesFromKeyword(
-        accommodationName
-      );
-
-      // Gemini 스키마의 'accommodation.coordinates' 객체에 [경도, 위도]를 저장
-      day.accommodation.coordinates = {
-        latitude: geoJsonAccommodationLocation.coordinates[1], // 위도
-        longitude: geoJsonAccommodationLocation.coordinates[0], // 경도
-      };
-
-      console.log(
-        `  [Day ${day.day}] ${accommodationName} (숙소) 좌표 추가 완료: [${day.accommodation.coordinates.longitude}, ${day.accommodation.coordinates.latitude}]`
-      );
-    }
   }
+
   console.log("✅ GeoJSON 좌표 변환 완료.");
   return tripData;
 }
@@ -158,16 +147,12 @@ async function generateTripCanvas(
 **출력 형식 제약 조건 (필수 준수 사항):**
 
 1.  출력은 반드시 **단일 JSON 객체** 형태여야 합니다.
-2.  모든 장소와 숙소는 **카카오맵**에서 정확히 일치하는 단일 검색 결과를 찾을 수 있는 실제 장소여야 합니다. 검색 시 '지역명 + 상호명'을 조합하여 고유성을 확보해야 합니다. 부가적인 설명('무한리필', '맛집', '최고의')은 절대 포함하지 않고, 고유한 상호명(Brand Name)만 사용하십시오.
+2.  모든 장소는 **카카오맵**에서 정확히 일치하는 단일 검색 결과를 찾을 수 있는 실제 장소여야 합니다. 검색 시 '지역명 + 상호명'을 조합하여 고유성을 확보해야 합니다. 부가적인 설명('무한리필', '맛집', '최고의')은 절대 포함하지 않고, 고유한 상호명(Brand Name)만 사용하십시오.
 3.  **장소 고유 이름** (uniqueName) 필드에는 장소 자체의 이름 (예: '익선동 한옥마을', 'N서울타워')만 포함해야 하며, '탐방', '방문', '체험', '투어' 등의 행위나 테마 관련 단어는 절대 포함하지 마십시오.
-4.  **숙소 고유 이름**에도 부가적인 설명, 숙소 등급, 또는 '&'를 사용한 묶음 행위는 **절대 금지**합니다. 오직 지도 서비스에서 검색 가능한 고유 이름만 포함합니다.
-5.  **숙소**는 **장소** 근처의 실제 존재하는 펜션, 호텔, 게스트하우스 등을 추천합니다.
-6.  모든 장소 항목에는 **고유 이름, 설명, 예상 소비 금액, 좌표 (위도/경도), 가까운 지하철역** 정보가 포함되어야 합니다. 가까운 지하철역이 없으면 '없음'으로 표기합니다.
-7.  모든 숙소 항목에는 **이름, 설명, 예상 소비 금액, 좌표 (위도/경도), 가까운 지하철역** 정보가 포함되어야 합니다.
-8.  총 예상 비용은 총 예산을 초과하지 않도록 계획합니다.
+4.  모든 장소 항목에는 **고유 이름, 설명, 예상 소비 금액, 좌표 (위도/경도), 가까운 지하철역** 정보가 포함되어야 합니다. 가까운 지하철역이 없으면 '없음'으로 표기합니다.
+5.  총 예상 비용은 총 예산을 초과하지 않도록 계획합니다.
 
 당신은 한국여행 플래너입니다. 위의 입력 정보에 맞게 여행계획을 세워주세요. 제약조건도 고려하여 계획해 주시길 바랍니다.
-숙소는 ${startStr}부터 ${endStr}까지 ${destination}근처의 ${peoplecnt}명 기준으로 찾습니다. hotels 도구를 사용하여 실제 예약 가능한 숙소를 검색하고, 그 결과를 반영하여 JSON 객체의 'name' 필드에 검색 가능한 고유 상호명만 기재합니다.
 `;
 
   try {
@@ -176,8 +161,7 @@ async function generateTripCanvas(
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
-        responseMimeType: "application/json",
-        // ❗ 영문 키가 적용된 Schema ❗
+        responseMimeType: "application/json", // ❗ 영문 키가 적용된 Schema ❗
         responseSchema: {
           type: "object",
           properties: {
@@ -214,30 +198,6 @@ async function generateTripCanvas(
                 type: "object",
                 properties: {
                   day: { type: "number" },
-                  accommodation: {
-                    type: "object",
-                    properties: {
-                      name: { type: "string" },
-                      description: { type: "string" },
-                      estimatedCost: { type: "number" },
-                      coordinates: {
-                        type: "object",
-                        properties: {
-                          latitude: { type: "number" },
-                          longitude: { type: "number" },
-                        },
-                        required: ["latitude", "longitude"],
-                      },
-                      nearbySubwayStation: { type: "string" },
-                    },
-                    required: [
-                      "name",
-                      "description",
-                      "estimatedCost",
-                      "coordinates",
-                      "nearbySubwayStation",
-                    ],
-                  },
                   dailyPlaces: {
                     type: "array",
                     items: {
@@ -266,7 +226,7 @@ async function generateTripCanvas(
                     },
                   },
                 },
-                required: ["day", "accommodation", "dailyPlaces"],
+                required: ["day", "dailyPlaces"],
               },
             },
           },
@@ -280,7 +240,7 @@ async function generateTripCanvas(
 
     // 4. TripCanvas 로직에 데이터 전달
     console.log("\n✅ Gemini API 응답 수신 완료.");
-    // 응답으로 받은 장소/숙소 이름으로 좌표를 찾는 로직 (가정)
+    // 응답으로 받은 장소 이름으로 좌표를 찾는 로직 (가정)
     const geoLocatedTripData = await addGeoJSONToTripData(tripData);
     processTripCanvas(geoLocatedTripData);
 
@@ -319,12 +279,12 @@ function processTripCanvas(data) {
   // 예: TripCanvas.render(data);
 }
 
-const destination = "보령";
+const destination = "청주";
 const startDate = new Date("2025-12-13");
 const endDate = new Date("2025-12-14");
 const peoplecnt = 2;
 const budget = 150000 * peoplecnt;
-const interests = "바다를 보며 쉴 수 있는 카페";
+const interests = "맛집";
 
 const oneDay = 1000 * 60 * 60 * 24;
 const daysDifference =
