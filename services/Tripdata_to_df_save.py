@@ -5,13 +5,15 @@ import pandas as pd
 import time
 import math
 import sys
-
+import os
+from dotenv import load_dotenv
 
 sys.stdout.reconfigure(encoding='utf-8')
+load_dotenv()
 
 page_no = 1
-key = "d76ac5e297694f1394b83e27c3db86757fa9841547096b05c70788028361e5a1"
-base_url = f"http://apis.data.go.kr/B551011/KorService2/areaBasedList2"    
+key = os.getenv("TRIP_KEY")
+base_url = os.getenv("TRIP_URL")
 
 def fetch_page_data(page_num, num_of_rows, contentTypeId):
     """
