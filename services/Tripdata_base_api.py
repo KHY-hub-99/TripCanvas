@@ -45,7 +45,7 @@ except Exception as e:
 print(tripdata.columns)
         
 
-# --- 2. 사용자 입력 받기 (테마 입력 제거) ---
+# --- 2. 사용자 입력 받기 (테마 입력 재활성화) ---
 def get_user_inputs():
     """사용자로부터 여행 계획에 필요한 정보를 입력받습니다."""
     print("\n--- 📝 여행 계획 정보를 입력해주세요 ---")
@@ -78,8 +78,12 @@ def get_user_inputs():
         print("❌ 오류: 예산과 인원수는 숫자로 입력해야 합니다. 프로그램을 다시 시작해 주세요.")
         exit()
         
-    # 🌟 테마 고정 🌟
-    fixed_theme = "숙소"
+    # 🌟 장소 테마 입력 받기 🌟
+    place_theme = input("장소 여행 테마 (파일의 cat 값 중 선택, 여러 개는 쉼표(,)로 구분): ")
+    place_themes_list = [t.strip() for t in place_theme.split(',')]
+    
+    # 🌟 숙소 테마 고정 🌟
+    accommodation_theme = "숙소"
     
     return {
         "start_loc": start_loc,
@@ -89,52 +93,61 @@ def get_user_inputs():
         "duration": duration,
         "budget_per_person": budget,
         "total_people": people,
-        "themes": [fixed_theme] # 테마는 이제 '숙소' 하나로 고정
+        "place_themes": place_themes_list, # 장소 테마
+        "accommodation_theme": accommodation_theme # 숙소 테마
     }
 
-# --- 3. 데이터 필터링 및 전처리 (수정됨: area 필터링만 사용) ---
-def filter_and_format_data(df, end_area, accommodation_theme):
-    """사용자 입력(area)에 따라 장소 목록을 필터링하고, 별도로 숙소 목록을 필터링합니다."""
+# --- 3. 데이터 필터링 및 전처리 (수정됨: 장소/숙소 분리 필터링) ---
+def filter_and_format_data(df, end_area, place_themes, accommodation_theme):
+    """장소는 사용자가 입력한 테마로, 숙소는 '숙소' 테마로 분리하여 필터링합니다."""
     
-    # 1. 장소 목록 필터링 (area만 사용)
-    # 🌟 themes를 사용하지 않고 area에 해당하는 모든 장소를 포함합니다. 🌟
-    df_places = df[df['area'] == end_area].copy()
+    # 1. 지역 필터링 (공통)
+    df_area = df[df['area'] == end_area].copy()
     
-    if df_places.empty:
+    if df_area.empty:
         print(f"\n❌ 오류: '{end_area}' 지역에 해당하는 장소를 찾을 수 없습니다. 조건을 다시 확인해 주세요.")
         return None
 
-    # 2. 숙소 목록 필터링 (area와 cat='숙소' 사용)
-    # 🌟 숙소로 사용할 항목은 'cat'이 '숙소'인 항목만 별도로 추출합니다. 🌟
-    df_accommodations = df_places[df_places['cat'].str.contains(accommodation_theme, na=False)].copy()
-    
-    # 3. Gemini에게 전달할 전체 장소 정보 (장소 + 숙소 후보) 추출 및 형식화
-    # 장소와 숙소를 구분하지 않고, 후보 목록 전체를 전달합니다.
-    df_filtered = pd.concat([df_places, df_accommodations]).drop_duplicates().copy()
-
-    # 필요한 열: title, y (위도), x (경도)
-    places_data = df_filtered[[
-        'title', 'y', 'x' 
-    ]].fillna("없음").to_dict('records')
-    
-    formatted_places = []
-    for p in places_data:
-        # 좌표(위도, 경도)를 포함하여 전달
-        details = (
-            f"이름: {p['title']}, "
-            f"좌표: {p['y']}, {p['x']}" 
+    # 2. 장소 목록 필터링 (area + place_themes 사용)
+    if place_themes and place_themes != ['']:
+        # 각 행의 'cat' 값에 place_themes의 요소가 하나라도 포함되는지 확인
+        place_mask = df_area['cat'].apply(
+            lambda x: any(theme in str(x) for theme in place_themes) if pd.notna(x) else False
         )
-        formatted_places.append(details)
+        df_places = df_area[place_mask].copy()
+    else:
+        # 장소 테마가 없으면, 해당 지역의 모든 장소를 후보로 사용
+        df_places = df_area.copy()
         
-    # 숙소 후보는 별도의 목록으로 전달하여 Gemini가 숙소를 선택하기 쉽게 돕습니다.
+    # 3. 숙소 목록 필터링 (area + '숙소' 테마 사용)
+    accommodation_mask = df_area['cat'].apply(
+        lambda x: accommodation_theme in str(x) if pd.notna(x) else False
+    )
+    df_accommodations = df_area[accommodation_mask].copy()
+    
+    # 4. Gemini에게 전달할 데이터 형식화
+    
+    # 4-1. 장소 후보 목록 형식화
+    formatted_places = []
+    if not df_places.empty:
+        places_data = df_places[[ 'title', 'y', 'x' ]].fillna("없음").to_dict('records')
+        for p in places_data:
+            details = (
+                f"이름: {p['title']}, "
+                f"좌표: {p['y']}, {p['x']}" 
+            )
+            formatted_places.append(details)
+    
+    # 4-2. 숙소 후보 목록 형식화
     formatted_accommodations = []
-    for p in df_accommodations[[ 'title', 'y', 'x' ]].fillna("없음").to_dict('records'):
-        details = (
-            f"숙소 후보 이름: {p['title']}, "
-            f"좌표: {p['y']}, {p['x']}"
-        )
-        formatted_accommodations.append(details)
-
+    if not df_accommodations.empty:
+        accommodation_data = df_accommodations[[ 'title', 'y', 'x' ]].fillna("없음").to_dict('records')
+        for p in accommodation_data:
+            details = (
+                f"숙소 후보 이름: {p['title']}, "
+                f"좌표: {p['y']}, {p['x']}"
+            )
+            formatted_accommodations.append(details)
 
     return formatted_places, formatted_accommodations
 
@@ -271,7 +284,6 @@ def generate_travel_plan(user_info, places_data, accommodation_data):
 
 # --- 5. 메인 실행 로직 (수정됨: 필터링 결과 처리) ---
 if __name__ == "__main__":
-    
     # 1. 사용자 입력 받기
     user_info = get_user_inputs()
     
@@ -279,9 +291,9 @@ if __name__ == "__main__":
     filter_results = filter_and_format_data(
         tripdata, 
         user_info['end_area'], 
-        user_info['themes'][0] # 고정된 '숙소' 테마를 전달
+        user_info['place_themes'], # 장소 테마 사용
+        user_info['accommodation_theme'] # 숙소 테마 사용
     )
-    
     if filter_results:
         formatted_places, formatted_accommodations = filter_results
         
