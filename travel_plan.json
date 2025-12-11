@@ -1,0 +1,63 @@
+{
+    "travel_plan": [
+        {
+            "day": 1,
+            "places": [
+                {
+                    "name": "궁평식당",
+                    "description": "곤지암 지역의 인기 맛집. 신선한 재료로 만든 건강한 한식을 즐길 수 있습니다.",
+                    "coords": "37.3381508041, 127.3211269145",
+                    "estimated_cost": 15000,
+                    "closest_subway": "곤지암역"
+                },
+                {
+                    "name": "우드페커",
+                    "description": "아늑한 분위기에서 향긋한 커피 한 잔과 여유를 만끽할 수 있는 감성 카페입니다.",
+                    "coords": "37.330784653, 127.3025260314",
+                    "estimated_cost": 7000,
+                    "closest_subway": "곤지암역"
+                },
+                {
+                    "name": "복가밥상 본점",
+                    "description": "정갈하고 맛깔스러운 한정식을 제공하는 곳. 전통의 맛을 느껴보세요.",
+                    "coords": "37.3342678048, 127.314760935",
+                    "estimated_cost": 18000,
+                    "closest_subway": "곤지암역"
+                }
+            ],
+            "accommodation": {
+                "name": "제이알랜드",
+                "description": "곤지암 근처에 위치한 편안하고 아늑한 펜션입니다. 자연 속에서 휴식을 취하기 좋습니다.",
+                "coords": "37.3390837059, 127.3032562856",
+                "estimated_cost": 35000,
+                "closest_subway": "곤지암역"
+            }
+        },
+        {
+            "day": 2,
+            "places": [
+                {
+                    "name": "최미자소머리국밥",
+                    "description": "진하고 깊은 맛의 소머리국밥으로 든든하게 아침 식사를 시작할 수 있습니다.",
+                    "coords": "37.346166803, 127.3355031612",
+                    "estimated_cost": 12000,
+                    "closest_subway": "곤지암역"
+                },
+                {
+                    "name": "태화산명가",
+                    "description": "태화산의 정기를 받아 자연과 함께 즐기는 건강한 한식 요리 전문점입니다.",
+                    "coords": "37.3454557414, 127.3336589043",
+                    "estimated_cost": 13000,
+                    "closest_subway": "곤지암역"
+                }
+            ],
+            "accommodation": {
+                "name": "제이알랜드",
+                "description": "전날과 동일한 숙소에서 편안한 휴식 후 여행을 마무리하고 출발합니다.",
+                "coords": "37.3390837059, 127.3032562856",
+                "estimated_cost": 0,
+                "closest_subway": "곤지암역"
+            }
+        }
+    ]
+}

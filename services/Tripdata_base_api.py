@@ -53,6 +53,7 @@ def get_user_inputs():
     start_loc = input("출발지: ")
     # area 값은 tripdata['area'].unique()에서 확인하여 입력하는 것을 권장합니다.
     end_area = input(f"도착지 (파일의 area 값 중 하나, 예: 서울, 부산): ")
+    detail_addr = input(f"도착지 (파일의 area 값 중 하나, 예: 시/군/구): ")
     
     # 날짜 입력 및 기간 계산
     while True:
@@ -88,6 +89,7 @@ def get_user_inputs():
     return {
         "start_loc": start_loc,
         "end_area": end_area,
+        "detail_addr": detail_addr,  # detail_addr도 end_area로 설정
         "start_date": start_date_str,
         "end_date": end_date_str,
         "duration": duration,
@@ -98,11 +100,11 @@ def get_user_inputs():
     }
 
 # --- 3. 데이터 필터링 및 전처리 (수정됨: 장소/숙소 분리 필터링) ---
-def filter_and_format_data(df, end_area, place_themes, accommodation_theme):
+def filter_and_format_data(df, end_area, detail_addr, place_themes, accommodation_theme):
     """장소는 사용자가 입력한 테마로, 숙소는 '숙소' 테마로 분리하여 필터링합니다."""
     
     # 1. 지역 필터링 (공통)
-    df_area = df[df['area'] == end_area].copy()
+    df_area = df[(df['area'] == end_area) & (df['detail_addr'] == detail_addr)].copy()
     
     if df_area.empty:
         print(f"\n❌ 오류: '{end_area}' 지역에 해당하는 장소를 찾을 수 없습니다. 조건을 다시 확인해 주세요.")
@@ -290,7 +292,8 @@ if __name__ == "__main__":
     # 2. 데이터 필터링 및 형식화
     filter_results = filter_and_format_data(
         tripdata, 
-        user_info['end_area'], 
+        user_info['end_area'],
+        user_info['detail_addr'],
         user_info['place_themes'], # 장소 테마 사용
         user_info['accommodation_theme'] # 숙소 테마 사용
     )
@@ -318,5 +321,12 @@ if __name__ == "__main__":
                 # 보기 좋게 JSON 출력
                 print(json.dumps(travel_plan_json, indent=4, ensure_ascii=False))
                 print("=============================================")
+                file_path = "travel_plan.json"
+                try:
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        json.dump(travel_plan_json, f, ensure_ascii=False, indent=4)
+                    print(f"\n✅ 여행 계획이 '{file_path}' 파일로 저장되었습니다.")
+                except Exception as e:
+                    print(f"\n❌ 파일 저장 중 오류가 발생했습니다: {e}")
             else:
                 print("\n여행 계획 생성에 실패했습니다.")
