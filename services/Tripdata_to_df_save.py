@@ -57,9 +57,9 @@ def fetch_page_data(page_num, num_of_rows, contentTypeId):
             'contentTypeId': contentTypeId, # 12 usually means 'Attractions' or 'Tour Sites'
             'areaCode': '',
             'sigunguCode': '',
-            'cat1': '',
-            'cat2': '',
-            'cat3': ''
+            'cat1': 'A03',
+            'cat2': 'A0302',
+            'cat3': 'A03021700'
         }
 
         # Encode parameters for the final URL
@@ -84,7 +84,6 @@ def fetch_page_data(page_num, num_of_rows, contentTypeId):
             # Example fields - retrieve fields relevant to your need
             data['title'] = item.find('title').text if item.find('title') is not None else 'N/A'
             data['area'] = item.find('areacode').text if item.find('areacode') is not None else 'N/A'
-            data['contentid'] = item.find('contentid').text if item.find('contentid') is not None else 'N/A'
             addr1 = item.find('addr1').text if item.find('addr1') is not None else ''
             addr2 = item.find('addr2').text if item.find('addr2') is not None else ''
             address_parts = [addr1, addr2]
@@ -151,9 +150,9 @@ def save_to_dataframe_and_csv(data_list, filename="tour_data.csv"):
     return df
 
 # 음식점 total 14126, 숙박 total 3590
-TOTAL_COUNT = 8206
+TOTAL_COUNT = 2096
 ROWS_PER_PAGE = 1000
-CONTENT_TYPE_ID = 38
+CONTENT_TYPE_ID = 28
 
 # 1. API 호출로 모든 데이터 수집
 all_data_list = fetch_all_data(TOTAL_COUNT, ROWS_PER_PAGE, CONTENT_TYPE_ID)
