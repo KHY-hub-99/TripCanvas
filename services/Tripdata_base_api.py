@@ -162,7 +162,7 @@ def generate_travel_plan(user_info, places_data, accommodation_data):
     
     # 🌟🌟🌟 프롬프트에 출력할 JSON 구조 예시를 배열 기반으로 수정하여 구조를 강제합니다. 🌟🌟🌟
     prompt = f"""
-    당신은 전문 여행 플래너입니다. 아래의 정보와 장소 목록을 사용하여 {user_info['duration']}일간의 완벽한 여행 계획을 작성해 주세요.
+    당신은 전문 여행 플래너입니다. 아래의 정보와 장소 목록을 사용하여 {user_info['duration']}일간의 완벽한 여행 계획을 작성해 주세요. 사용자는 "{user_info['place_themes']}" 테마의 장소를 선호하며, 총 예산은 {total_budget}원이며, 숙소와 모든 활동이 포함되어야 합니다.
     여행 계획은 **JSON 형식**으로만 출력해야 합니다. 오류를 피하기 위해, 최상위 키 'travel_plan'의 값은 일자별 계획을 담은 **JSON 배열(List)**이어야 합니다. JSON 형식은 STRICTLY 아래의 요구사항과 **제공된 JSON 구조 예시**를 따라야 합니다.
     
     [여행 정보]
