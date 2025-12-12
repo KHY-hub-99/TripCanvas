@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripCanvas - 템플릿 갤러리</title>
+    <link rel="stylesheet" href="tamplet.css" />
+  </head>
+  <body>
+    <!-- 네비게이션 -->
+    <nav class="navbar">
+      <div class="navbar-left">
+        <div class="logo" onclick="goHome()">🗺️ TripCanvas</div>
+        <div class="nav-links">
+          <a href="#" class="nav-link">대시보드</a>
+          <a href="#" class="nav-link">내 여행</a>
+          <a href="#" class="nav-link">버킷리스트</a>
+          <a href="#" class="nav-link">커뮤니티</a>
+        </div>
+      </div>
+      <div class="user-avatar">🧑</div>
+    </nav>
+
+    <!-- 히어로 섹션 -->
+    <section class="hero">
+      <h1 class="hero-title">🎨 여행 템플릿 갤러리</h1>
+      <p class="hero-subtitle">
+        검증된 여행 템플릿으로 쉽고 빠르게 여행을 계획하세요.<br />
+        AI가 템플릿에 맞춰 최적의 경로를 생성해드립니다.
+      </p>
+    </section>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+      <!-- 검색 & 필터 -->
+      <div class="search-section">
+        <div class="search-box">
+          <input type="text" placeholder="템플릿 검색..." />
+          <span class="search-icon">🔍</span>
+        </div>
+        <div class="filter-group">
+          <select class="filter-select">
+            <option>인기순</option>
+            <option>최신순</option>
+            <option>사용자순</option>
+            <option>평점순</option>
+          </select>
+          <select class="filter-select">
+            <option>전체 기간</option>
+            <option>당일치기</option>
+            <option>1박 2일</option>
+            <option>2박 3일</option>
+            <option>3박 4일 이상</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 카테고리 필터 -->
+      <div class="category-filters">
+        <button class="category-filter active">🌟 전체</button>
+        <button class="category-filter">🍜 미식 여행</button>
+        <button class="category-filter">🏛️ 역사 탐방</button>
+        <button class="category-filter">🏖️ 휴양 여행</button>
+        <button class="category-filter">📸 사진 여행</button>
+        <button class="category-filter">⛰️ 등산/트레킹</button>
+        <button class="category-filter">🏕️ 캠핑</button>
+        <button class="category-filter">🎨 문화/예술</button>
+        <button class="category-filter">👨‍👩‍👧‍👦 가족 여행</button>
+        <button class="category-filter">💑 커플 여행</button>
+      </div>
+
+      <!-- 인기 템플릿 섹션 -->
+      <div class="section-header">
+        <h2 class="section-title">🔥 인기 템플릿</h2>
+        <a href="#" class="view-all">전체 보기 →</a>
+      </div>
+
+      <!-- 템플릿 그리드 -->
+      <div class="templates-grid">
+        <div class="template-card" onclick="useTemplate('busan-food')">
+          <div
+            class="template-thumbnail"
+            style="background: var(--primary-light)"
+          >
+            🍜
+            <span class="template-badge popular">🔥 인기</span>
+          </div>
+          <div class="template-content">
+            <span class="template-category">미식 여행</span>
+            <h3 class="template-title">부산 맛집 투어 2박 3일</h3>
+            <p class="template-description">
+              자갈치 시장부터 해운대 맛집까지, 부산의 모든 미식을 경험하는
+              완벽한 일정입니다.
+            </p>
+            <div class="template-meta">
+              <span>⏱️ 2박 3일</span>
+              <span>💰 ₩600,000</span>
+              <span>👥 2,547명 사용</span>
+            </div>
+            <div class="template-actions">
+              <button class="btn btn-primary">사용하기</button>
+              <button class="btn btn-secondary">미리보기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="useTemplate('jeju-healing')">
+          <div class="template-thumbnail" style="background: var(--secondary)">
+            🏖️
+            <span class="template-badge new">✨ 신규</span>
+          </div>
+          <div class="template-content">
+            <span class="template-category">휴양 여행</span>
+            <h3 class="template-title">제주도 힐링 여행 3박 4일</h3>
+            <p class="template-description">
+              아름다운 해변과 카페, 자연을 즐기는 여유로운 제주 여행 코스입니다.
+            </p>
+            <div class="template-meta">
+              <span>⏱️ 3박 4일</span>
+              <span>💰 ₩1,200,000</span>
+              <span>👥 1,892명 사용</span>
+            </div>
+            <div class="template-actions">
+              <button class="btn btn-primary">사용하기</button>
+              <button class="btn btn-secondary">미리보기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="useTemplate('seoul-history')">
+          <div class="template-thumbnail" style="background: var(--accent)">
+            🏛️
+          </div>
+          <div class="template-content">
+            <span class="template-category">역사 탐방</span>
+            <h3 class="template-title">서울 고궁 탐방 당일치기</h3>
+            <p class="template-description">
+              경복궁, 창덕궁, 북촌 한옥마을을 하루에 둘러보는 서울 역사
+              투어입니다.
+            </p>
+            <div class="template-meta">
+              <span>⏱️ 당일치기</span>
+              <span>💰 ₩150,000</span>
+              <span>👥 3,421명 사용</span>
+            </div>
+            <div class="template-actions">
+              <button class="btn btn-primary">사용하기</button>
+              <button class="btn btn-secondary">미리보기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="useTemplate('gangwon-winter')">
+          <div
+            class="template-thumbnail"
+            style="background: var(--primary-light)"
+          >
+            ⛷️
+            <span class="template-badge popular">🔥 인기</span>
+          </div>
+          <div class="template-content">
+            <span class="template-category">겨울 여행</span>
+            <h3 class="template-title">강원도 스키 여행 2박 3일</h3>
+            <p class="template-description">
+              평창 스키장과 주변 관광지를 함께 즐기는 겨울 여행 코스입니다.
+            </p>
+            <div class="template-meta">
+              <span>⏱️ 2박 3일</span>
+              <span>💰 ₩800,000</span>
+              <span>👥 1,234명 사용</span>
+            </div>
+            <div class="template-actions">
+              <button class="btn btn-primary">사용하기</button>
+              <button class="btn btn-secondary">미리보기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="useTemplate('gyeongju-culture')">
+          <div class="template-thumbnail" style="background: var(--secondary)">
+            🏺
+          </div>
+          <div class="template-content">
+            <span class="template-category">문화/역사</span>
+            <h3 class="template-title">경주 문화재 여행 1박 2일</h3>
+            <p class="template-description">
+              불국사, 석굴암, 첨성대 등 신라 천년의 역사를 느끼는 여행입니다.
+            </p>
+            <div class="template-meta">
+              <span>⏱️ 1박 2일</span>
+              <span>💰 ₩350,000</span>
+              <span>👥 2,156명 사용</span>
+            </div>
+            <div class="template-actions">
+              <button class="btn btn-primary">사용하기</button>
+              <button class="btn btn-secondary">미리보기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="template-card" onclick="useTemplate('cafe-tour')">
+          <div class="template-thumbnail" style="background: var(--accent)">
+            ☕
+            <span class="template-badge new">✨ 신규</span>
+          </div>
+          <div class="template-content">
+            <span class="template-category">카페 투어</span>
+            <h3 class="template-title">성수동 감성 카페 투어</h3>
+            <p class="template-description">
+              성수동의 핫한 카페들을 하루에 모두 방문하는 카페 호핑 코스입니다.
+            </p>
+            <div class="template-meta">
+              <span>⏱️ 당일치기</span>
+              <span>💰 ₩80,000</span>
+              <span>👥 4,892명 사용</span>
+            </div>
+            <div class="template-actions">
+              <button class="btn btn-primary">사용하기</button>
+              <button class="btn btn-secondary">미리보기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

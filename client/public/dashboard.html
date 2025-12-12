@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripCanvas - 대시보드</title>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <!-- 네비게이션 -->
+    <nav class="navbar">
+      <div class="navbar-left">
+        <div class="logo">🗺️ TripCanvas</div>
+        <div class="nav-links">
+          <a href="#" class="nav-link active">대시보드</a>
+          <a href="#" class="nav-link">내 여행</a>
+          <a href="#" class="nav-link">버킷리스트</a>
+          <a href="#" class="nav-link">커뮤니티</a>
+        </div>
+      </div>
+      <div class="navbar-right">
+        <div class="user-profile">
+          <div class="user-avatar">🧑</div>
+          <div class="user-info">
+            <div class="user-name">김여행</div>
+            <div class="user-email">travel@example.com</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+      <!-- 환영 섹션 -->
+      <div class="welcome-section">
+        <h1 class="welcome-title">안녕하세요, 김여행님! 👋</h1>
+        <p class="welcome-subtitle">
+          다음 여행을 계획하거나 진행 중인 여행을 관리해보세요
+        </p>
+      </div>
+
+      <!-- 통계 카드 -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">🗺️</div>
+          <div class="stat-value">12</div>
+          <div class="stat-label">전체 여행</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value">8</div>
+          <div class="stat-label">완료한 여행</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-value">45</div>
+          <div class="stat-label">달성한 챌린지</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📍</div>
+          <div class="stat-value">127</div>
+          <div class="stat-label">방문한 장소</div>
+        </div>
+      </div>
+
+      <!-- 액션 버튼 -->
+      <div class="action-buttons">
+        <button class="btn btn-primary" onclick="createTrip()">
+          ✨ 새 여행 만들기
+        </button>
+        <button class="btn btn-secondary" onclick="showBucketList()">
+          📝 버킷리스트 관리
+        </button>
+        <button class="btn btn-secondary" onclick="showTemplates()">
+          🎨 템플릿 둘러보기
+        </button>
+      </div>
+
+      <!-- 탭 -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="active">진행 중 (2)</button>
+        <button class="tab-btn" data-tab="planning">계획 중 (3)</button>
+        <button class="tab-btn" data-tab="completed">완료 (7)</button>
+      </div>
+
+      <!-- 여행 카드 그리드 -->
+      <div class="trips-grid" id="activeTrips">
+        <div class="trip-card" onclick="openTrip()">
+          <div class="trip-thumbnail">
+            🏖️
+            <span class="trip-status active">● 진행 중</span>
+          </div>
+          <div class="trip-content">
+            <h3 class="trip-title">서울-부산 2박 3일 미식 여행</h3>
+            <p class="trip-dates">2024.12.15 - 2024.12.17</p>
+            <div class="trip-meta">
+              <span>💰 ₩523,000 / ₩800,000</span>
+              <span>📍 5개 장소</span>
+            </div>
+            <div class="trip-progress">
+              <div class="trip-progress-label">
+                <span>진행도</span>
+                <span>60%</span>
+              </div>
+              <div class="trip-progress-bar">
+                <div class="trip-progress-fill" style="width: 60%"></div>
+              </div>
+            </div>
+            <div class="trip-actions">
+              <button class="trip-action-btn">✏️ 편집</button>
+              <button class="trip-action-btn">👥 공유</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="trip-card">
+          <div class="trip-thumbnail">
+            🏔️
+            <span class="trip-status active">● 진행 중</span>
+          </div>
+          <div class="trip-content">
+            <h3 class="trip-title">강원도 겨울 여행</h3>
+            <p class="trip-dates">2024.12.20 - 2024.12.22</p>
+            <div class="trip-meta">
+              <span>💰 ₩350,000 / ₩600,000</span>
+              <span>📍 8개 장소</span>
+            </div>
+            <div class="trip-progress">
+              <div class="trip-progress-label">
+                <span>진행도</span>
+                <span>25%</span>
+              </div>
+              <div class="trip-progress-bar">
+                <div class="trip-progress-fill" style="width: 25%"></div>
+              </div>
+            </div>
+            <div class="trip-actions">
+              <button class="trip-action-btn">✏️ 편집</button>
+              <button class="trip-action-btn">👥 공유</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="trip-card">
+          <div class="trip-thumbnail" style="background: var(--secondary)">
+            ✨
+            <span class="trip-status planning">● 계획 중</span>
+          </div>
+          <div class="trip-content">
+            <h3 class="trip-title">제주도 힐링 여행</h3>
+            <p class="trip-dates">2025.01.10 - 2025.01.13</p>
+            <div class="trip-meta">
+              <span>💰 ₩0 / ₩1,200,000</span>
+              <span>📍 12개 장소</span>
+            </div>
+            <div class="trip-progress">
+              <div class="trip-progress-label">
+                <span>계획 진행도</span>
+                <span>40%</span>
+              </div>
+              <div class="trip-progress-bar">
+                <div class="trip-progress-fill" style="width: 40%"></div>
+              </div>
+            </div>
+            <div class="trip-actions">
+              <button class="trip-action-btn">✏️ 편집</button>
+              <button class="trip-action-btn">🗑️ 삭제</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 챌린지 섹션 -->
+      <div class="challenge-section">
+        <div class="section-header">
+          <h2 class="section-title">🎯 나의 여행 챌린지</h2>
+          <button class="btn btn-secondary" onclick="showAllChallenges()">
+            모두 보기 →
+          </button>
+        </div>
+
+        <div class="challenges-grid">
+          <div class="challenge-card">
+            <div class="challenge-icon">☕</div>
+            <div class="challenge-name">카페 탐방가</div>
+            <div class="challenge-progress">12/20</div>
+            <div class="challenge-target">20개 카페 방문</div>
+            <div class="challenge-bar">
+              <div class="challenge-bar-fill" style="width: 60%"></div>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-icon">🍽️</div>
+            <div class="challenge-name">미식가</div>
+            <div class="challenge-progress">34/50</div>
+            <div class="challenge-target">50개 맛집 방문</div>
+            <div class="challenge-bar">
+              <div class="challenge-bar-fill" style="width: 68%"></div>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-icon">📸</div>
+            <div class="challenge-name">포토그래퍼</div>
+            <div class="challenge-progress">89/100</div>
+            <div class="challenge-target">100장 사진 촬영</div>
+            <div class="challenge-bar">
+              <div class="challenge-bar-fill" style="width: 89%"></div>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-icon">🏃</div>
+            <div class="challenge-name">여행벌레</div>
+            <div class="challenge-progress">18/30</div>
+            <div class="challenge-target">30개 도시 방문</div>
+            <div class="challenge-bar">
+              <div class="challenge-bar-fill" style="width: 60%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

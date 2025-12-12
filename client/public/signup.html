@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripCanvas - 회원가입</title>
+    <link rel="stylesheet" href="signup.css" />
+  </head>
+  <body>
+    <div class="signup-container">
+      <div class="logo-section">
+        <div class="logo">🗺️</div>
+        <div class="logo-text">TripCanvas</div>
+        <div class="subtitle">AI 기반 맞춤형 여행 플래너</div>
+      </div>
+
+      <form id="signupForm">
+        <!-- 프로필 이미지 -->
+        <div class="profile-upload">
+          <label for="profileImage">
+            <div class="profile-preview" id="profilePreview">
+              👤
+              <div class="upload-icon">📷</div>
+            </div>
+            <div class="upload-label">프로필 사진 업로드 (선택)</div>
+          </label>
+          <input type="file" id="profileImage" accept="image/*" />
+        </div>
+
+        <!-- 아이디 -->
+        <div class="form-group">
+          <label> 아이디<span class="required">*</span> </label>
+          <input
+            type="text"
+            id="username"
+            placeholder="영문, 숫자 조합 4-20자"
+            required
+          />
+          <div class="validation-check" id="usernameCheck">
+            4-20자의 영문, 숫자 조합
+          </div>
+          <div class="error-message" id="usernameError"></div>
+        </div>
+
+        <!-- 이메일 -->
+        <div class="form-group">
+          <label> 이메일<span class="required">*</span> </label>
+          <input
+            type="email"
+            id="email"
+            placeholder="example@email.com"
+            required
+          />
+          <div class="validation-check" id="emailCheck">올바른 이메일 형식</div>
+          <div class="error-message" id="emailError"></div>
+        </div>
+
+        <!-- 닉네임 -->
+        <div class="form-group">
+          <label> 닉네임<span class="required">*</span> </label>
+          <input
+            type="text"
+            id="nickname"
+            placeholder="2-10자 닉네임"
+            required
+          />
+          <div class="validation-check" id="nicknameCheck">2-10자 이내</div>
+          <div class="error-message" id="nicknameError"></div>
+        </div>
+
+        <!-- 비밀번호 -->
+        <div class="form-group">
+          <label> 비밀번호<span class="required">*</span> </label>
+          <input
+            type="password"
+            id="password"
+            placeholder="8자 이상, 영문/숫자/특수문자 포함"
+            required
+          />
+          <div class="password-strength">
+            <div class="password-strength-bar" id="passwordStrengthBar"></div>
+          </div>
+        </div>
+
+        <!-- 비밀번호 확인 -->
+        <div class="form-group">
+          <label> 비밀번호 확인<span class="required">*</span> </label>
+          <input
+            type="password"
+            id="passwordConfirm"
+            placeholder="비밀번호를 다시 입력하세요"
+            required
+          />
+          <div class="error-message" id="passwordConfirmError"></div>
+        </div>
+
+        <!-- 약관 동의 -->
+        <div class="terms">
+          <label>
+            <input type="checkbox" id="agreeTerms" required />
+            <span>이용약관 및 개인정보처리방침에 동의합니다</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-signup">회원가입</button>
+      </form>
+
+      <div class="login-link">
+        이미 계정이 있으신가요? <a href="login.html">로그인</a>
+      </div>
+    </div>
+    <script type="module" src="../pages/SignUp.mjs"></script>
+  </body>
+</html>

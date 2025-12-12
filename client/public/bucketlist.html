@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripCanvas - 버킷리스트</title>
+    <link rel="stylesheet" href="bucketlist.css" />
+  </head>
+  <body>
+    <!-- 네비게이션 -->
+    <nav class="navbar">
+      <div class="navbar-left">
+        <div class="logo" onclick="goHome()">🗺️ TripCanvas</div>
+        <div class="nav-links">
+          <a href="#" class="nav-link">대시보드</a>
+          <a href="#" class="nav-link">내 여행</a>
+          <a href="#" class="nav-link active">버킷리스트</a>
+          <a href="#" class="nav-link">커뮤니티</a>
+        </div>
+      </div>
+      <div class="user-avatar">🧑</div>
+    </nav>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+      <!-- 헤더 -->
+      <div class="page-header">
+        <h1 class="page-title">🎯 나의 버킷리스트</h1>
+        <p class="page-subtitle">
+          여행 목표를 설정하고 달성해보세요. AI가 목표에 맞는 장소를 우선
+          추천해드립니다.
+        </p>
+      </div>
+
+      <!-- 통계 -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-value">12</div>
+          <div class="stat-label">전체 챌린지</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value">7</div>
+          <div class="stat-label">완료</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-value">5</div>
+          <div class="stat-label">진행 중</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📈</div>
+          <div class="stat-value">58%</div>
+          <div class="stat-label">평균 달성률</div>
+        </div>
+      </div>
+
+      <!-- 액션 & 필터 -->
+      <div class="actions">
+        <button class="btn btn-primary" onclick="openModal()">
+          ➕ 새 챌린지 만들기
+        </button>
+        <div class="filter-tabs">
+          <button class="filter-btn active">전체</button>
+          <button class="filter-btn">진행 중</button>
+          <button class="filter-btn">완료</button>
+        </div>
+      </div>
+
+      <!-- 챌린지 그리드 -->
+      <div class="challenges-grid">
+        <div class="challenge-card">
+          <div class="challenge-card::before"></div>
+          <div class="challenge-header">
+            <div class="challenge-icon">☕</div>
+            <div class="challenge-status active">● 진행 중</div>
+          </div>
+          <h3 class="challenge-title">카페 탐방가</h3>
+          <p class="challenge-description">
+            전국의 특색있는 카페 20곳을 방문하고 각 카페의 시그니처 메뉴를
+            경험해보세요
+          </p>
+          <div class="challenge-progress-section">
+            <div class="progress-header">
+              <span class="progress-label">달성률</span>
+              <span class="progress-value">12 / 20</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 60%"></div>
+            </div>
+          </div>
+          <div class="challenge-meta">
+            <span>📅 2024.06.01 시작</span>
+            <span>🏆 3명 참여 중</span>
+          </div>
+          <div class="challenge-actions">
+            <button class="challenge-action-btn">📍 추천 장소</button>
+            <button class="challenge-action-btn">📊 상세 보기</button>
+          </div>
+        </div>
+
+        <div class="challenge-card">
+          <div class="challenge-header">
+            <div class="challenge-icon">🍽️</div>
+            <div class="challenge-status active">● 진행 중</div>
+          </div>
+          <h3 class="challenge-title">미식가의 여정</h3>
+          <p class="challenge-description">
+            미슐랭 가이드 추천 맛집 50곳을 방문하고 각 음식의 특징을
+            기록해보세요
+          </p>
+          <div class="challenge-progress-section">
+            <div class="progress-header">
+              <span class="progress-label">달성률</span>
+              <span class="progress-value">34 / 50</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 68%"></div>
+            </div>
+          </div>
+          <div class="challenge-meta">
+            <span>📅 2024.03.15 시작</span>
+            <span>🏆 혼자 도전</span>
+          </div>
+          <div class="challenge-actions">
+            <button class="challenge-action-btn">📍 추천 장소</button>
+            <button class="challenge-action-btn">📊 상세 보기</button>
+          </div>
+        </div>
+
+        <div class="challenge-card">
+          <div class="challenge-header">
+            <div class="challenge-icon">📸</div>
+            <div class="challenge-status completed">✓ 완료</div>
+          </div>
+          <h3 class="challenge-title">포토그래퍼</h3>
+          <p class="challenge-description">
+            인생샷을 남길 수 있는 명소 100곳에서 사진을 촬영해보세요
+          </p>
+          <div class="challenge-progress-section">
+            <div class="progress-header">
+              <span class="progress-label">달성률</span>
+              <span class="progress-value">100 / 100</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 100%"></div>
+            </div>
+          </div>
+          <div class="challenge-meta">
+            <span>📅 2024.01.01 완료</span>
+            <span>🏆 2명 참여</span>
+          </div>
+          <div class="challenge-actions">
+            <button class="challenge-action-btn">🎉 결과 보기</button>
+            <button class="challenge-action-btn">🔄 다시 시작</button>
+          </div>
+        </div>
+
+        <div class="challenge-card">
+          <div class="challenge-header">
+            <div class="challenge-icon">🏛️</div>
+            <div class="challenge-status active">● 진행 중</div>
+          </div>
+          <h3 class="challenge-title">역사 탐험가</h3>
+          <p class="challenge-description">
+            대한민국의 주요 문화재와 역사 유적지 30곳을 방문해보세요
+          </p>
+          <div class="challenge-progress-section">
+            <div class="progress-header">
+              <span class="progress-label">달성률</span>
+              <span class="progress-value">8 / 30</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 27%"></div>
+            </div>
+          </div>
+          <div class="challenge-meta">
+            <span>📅 2024.09.01 시작</span>
+            <span>🏆 5명 참여 중</span>
+          </div>
+          <div class="challenge-actions">
+            <button class="challenge-action-btn">📍 추천 장소</button>
+            <button class="challenge-action-btn">📊 상세 보기</button>
+          </div>
+        </div>
+
+        <div class="challenge-card">
+          <div class="challenge-header">
+            <div class="challenge-icon">🏖️</div>
+            <div class="challenge-status active">● 진행 중</div>
+          </div>
+          <h3 class="challenge-title">해변 컬렉터</h3>
+          <p class="challenge-description">
+            전국의 아름다운 해변 15곳을 방문하고 각 해변의 특색을 기록해보세요
+          </p>
+          <div class="challenge-progress-section">
+            <div class="progress-header">
+              <span class="progress-label">달성률</span>
+              <span class="progress-value">6 / 15</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 40%"></div>
+            </div>
+          </div>
+          <div class="challenge-meta">
+            <span>📅 2024.07.20 시작</span>
+            <span>🏆 혼자 도전</span>
+          </div>
+          <div class="challenge-actions">
+            <button class="challenge-action-btn">📍 추천 장소</button>
+            <button class="challenge-action-btn">📊 상세 보기</button>
+          </div>
+        </div>
+
+        <div class="challenge-card">
+          <div class="challenge-header">
+            <div class="challenge-icon">🎨</div>
+            <div class="challenge-status paused">⏸ 일시중지</div>
+          </div>
+          <h3 class="challenge-title">예술 애호가</h3>
+          <p class="challenge-description">
+            국내 주요 미술관과 박물관 25곳을 방문하고 전시회를 관람해보세요
+          </p>
+          <div class="challenge-progress-section">
+            <div class="progress-header">
+              <span class="progress-label">달성률</span>
+              <span class="progress-value">11 / 25</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 44%"></div>
+            </div>
+          </div>
+          <div class="challenge-meta">
+            <span>📅 2024.05.10 일시중지</span>
+            <span>🏆 혼자 도전</span>
+          </div>
+          <div class="challenge-actions">
+            <button class="challenge-action-btn">▶️ 재개</button>
+            <button class="challenge-action-btn">📊 상세 보기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 새 챌린지 모달 -->
+    <div class="modal" id="newChallengeModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">새 챌린지 만들기</h2>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+
+        <form id="challengeForm">
+          <div class="form-group">
+            <label>챌린지 이름</label>
+            <input type="text" placeholder="예: 부산 맛집 정복" required />
+          </div>
+
+          <div class="form-group">
+            <label>카테고리</label>
+            <div class="category-grid">
+              <div class="category-option">
+                <div class="category-icon">☕</div>
+                <div class="category-name">카페</div>
+              </div>
+              <div class="category-option selected">
+                <div class="category-icon">🍽️</div>
+                <div class="category-name">맛집</div>
+              </div>
+              <div class="category-option">
+                <div class="category-icon">📸</div>
+                <div class="category-name">사진</div>
+              </div>
+              <div class="category-option">
+                <div class="category-icon">🏛️</div>
+                <div class="category-name">문화재</div>
+              </div>
+              <div class="category-option">
+                <div class="category-icon">🏖️</div>
+                <div class="category-name">해변</div>
+              </div>
+              <div class="category-option">
+                <div class="category-icon">🎨</div>
+                <div class="category-name">예술</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>목표 개수</label>
+            <input type="number" placeholder="예: 20" min="1" required />
+          </div>
+
+          <div class="form-group">
+            <label>설명</label>
+            <textarea
+              rows="4"
+              placeholder="챌린지에 대한 설명을 작성해주세요"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            style="width: 100%; padding: 16px"
+          >
+            ✨ 챌린지 만들기
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripCanvas - 프로필 관리</title>
+    <link rel="stylesheet" href="profile.css" />
+  </head>
+  <body>
+    <!-- 네비게이션 -->
+    <nav class="navbar">
+      <div class="navbar-left">
+        <div class="logo" onclick="goHome()">🗺️ TripCanvas</div>
+        <div class="nav-links">
+          <a href="#" class="nav-link">대시보드</a>
+          <a href="#" class="nav-link">내 여행</a>
+          <a href="#" class="nav-link">버킷리스트</a>
+          <a href="#" class="nav-link">커뮤니티</a>
+        </div>
+      </div>
+      <div class="user-avatar">🧑</div>
+    </nav>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+      <!-- 프로필 헤더 -->
+      <div class="profile-header">
+        <div class="profile-avatar-large">
+          🧑
+          <label class="avatar-upload" for="avatarUpload"> 📷 </label>
+          <input
+            type="file"
+            id="avatarUpload"
+            style="display: none"
+            accept="image/*"
+          />
+        </div>
+        <div class="profile-info">
+          <h1 class="profile-name">김여행</h1>
+          <p class="profile-email">travel@example.com</p>
+          <div class="profile-stats">
+            <div class="profile-stat">
+              <div class="profile-stat-value">12</div>
+              <div class="profile-stat-label">여행</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-value">127</div>
+              <div class="profile-stat-label">장소</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-value">45</div>
+              <div class="profile-stat-label">챌린지</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-value">18</div>
+              <div class="profile-stat-label">배지</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 탭 -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="account">계정 정보</button>
+        <button class="tab-btn" data-tab="preferences">환경 설정</button>
+        <button class="tab-btn" data-tab="achievements">성취 & 배지</button>
+        <button class="tab-btn" data-tab="history">여행 히스토리</button>
+      </div>
+
+      <!-- 계정 정보 탭 -->
+      <div class="tab-content" id="accountTab">
+        <div class="settings-card">
+          <h2 class="card-title">👤 기본 정보</h2>
+          <form>
+            <div class="form-row">
+              <div class="form-group">
+                <label>아이디</label>
+                <input type="text" value="travelkim" disabled />
+              </div>
+              <div class="form-group">
+                <label>닉네임</label>
+                <input type="text" value="김여행" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>이메일</label>
+              <input type="email" value="travel@example.com" />
+            </div>
+            <div class="form-group">
+              <label>자기소개</label>
+              <textarea
+                rows="4"
+                placeholder="나를 소개하는 글을 작성해주세요"
+              ></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary">취소</button>
+              <button type="submit" class="btn btn-primary">저장</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="settings-card">
+          <h2 class="card-title">🔒 비밀번호 변경</h2>
+          <form>
+            <div class="form-group">
+              <label>현재 비밀번호</label>
+              <input type="password" placeholder="현재 비밀번호를 입력하세요" />
+            </div>
+            <div class="form-group">
+              <label>새 비밀번호</label>
+              <input type="password" placeholder="새 비밀번호를 입력하세요" />
+            </div>
+            <div class="form-group">
+              <label>새 비밀번호 확인</label>
+              <input
+                type="password"
+                placeholder="새 비밀번호를 다시 입력하세요"
+              />
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                비밀번호 변경
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="settings-card">
+          <h2 class="card-title">⚠️ 계정 관리</h2>
+          <p style="color: #64748b; margin-bottom: 16px">
+            계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수
+            없습니다.
+          </p>
+          <button class="btn btn-danger">계정 삭제</button>
+        </div>
+      </div>
+
+      <!-- 환경 설정 탭 -->
+      <div class="tab-content" id="preferencesTab" style="display: none">
+        <div class="settings-card">
+          <h2 class="card-title">🔔 알림 설정</h2>
+          <div class="notification-item">
+            <div class="notification-info">
+              <div class="notification-title">여행 알림</div>
+              <div class="notification-desc">
+                다가오는 여행 시작 전 알림을 받습니다
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="notification-item">
+            <div class="notification-info">
+              <div class="notification-title">챌린지 달성</div>
+              <div class="notification-desc">
+                챌린지를 완료하면 알림을 받습니다
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="notification-item">
+            <div class="notification-info">
+              <div class="notification-title">실시간 경로 변경</div>
+              <div class="notification-desc">
+                날씨/교통 변화로 경로 변경 시 알림을 받습니다
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="notification-item">
+            <div class="notification-info">
+              <div class="notification-title">예산 초과 경고</div>
+              <div class="notification-desc">
+                설정한 예산을 초과하면 알림을 받습니다
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h2 class="card-title">🌐 언어 & 지역</h2>
+          <form>
+            <div class="form-group">
+              <label>언어</label>
+              <select>
+                <option>한국어</option>
+                <option>English</option>
+                <option>日本語</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>타임존</label>
+              <select>
+                <option>Asia/Seoul (GMT+9)</option>
+                <option>America/New_York (GMT-5)</option>
+                <option>Europe/London (GMT+0)</option>
+              </select>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">저장</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 성취 & 배지 탭 -->
+      <div class="tab-content" id="achievementsTab" style="display: none">
+        <div class="settings-card">
+          <h2 class="card-title">🏆 획득한 배지</h2>
+          <div class="badges-grid">
+            <div class="badge-item earned">
+              <div class="badge-icon">🌟</div>
+              <div class="badge-name">첫 여행</div>
+            </div>
+            <div class="badge-item earned">
+              <div class="badge-icon">☕</div>
+              <div class="badge-name">카페 애호가</div>
+            </div>
+            <div class="badge-item earned">
+              <div class="badge-icon">🍽️</div>
+              <div class="badge-name">미식가</div>
+            </div>
+            <div class="badge-item earned">
+              <div class="badge-icon">📸</div>
+              <div class="badge-name">포토그래퍼</div>
+            </div>
+            <div class="badge-item earned">
+              <div class="badge-icon">🏛️</div>
+              <div class="badge-name">역사학자</div>
+            </div>
+            <div class="badge-item">
+              <div class="badge-icon">🏖️</div>
+              <div class="badge-name">해변 정복</div>
+            </div>
+            <div class="badge-item">
+              <div class="badge-icon">⛰️</div>
+              <div class="badge-name">등산가</div>
+            </div>
+            <div class="badge-item">
+              <div class="badge-icon">🎨</div>
+              <div class="badge-name">예술가</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 여행 히스토리 탭 -->
+      <div class="tab-content" id="historyTab" style="display: none">
+        <div class="settings-card">
+          <h2 class="card-title">📅 최근 여행</h2>
+          <div class="trip-history">
+            <div class="trip-history-item">
+              <div class="trip-history-icon">🏖️</div>
+              <div class="trip-history-info">
+                <div class="trip-history-title">
+                  서울-부산 2박 3일 미식 여행
+                </div>
+                <div class="trip-history-date">2024.12.15 - 2024.12.17</div>
+              </div>
+              <div class="trip-history-stats">
+                <span>💰 ₩523,000</span>
+                <span>📍 5개 장소</span>
+              </div>
+            </div>
+            <div class="trip-history-item">
+              <div class="trip-history-icon">🏔️</div>
+              <div class="trip-history-info">
+                <div class="trip-history-title">강원도 겨울 여행</div>
+                <div class="trip-history-date">2024.12.20 - 2024.12.22</div>
+              </div>
+              <div class="trip-history-stats">
+                <span>💰 ₩350,000</span>
+                <span>📍 8개 장소</span>
+              </div>
+            </div>
+            <div class="trip-history-item">
+              <div class="trip-history-icon">🌸</div>
+              <div class="trip-history-info">
+                <div class="trip-history-title">경주 벚꽃 여행</div>
+                <div class="trip-history-date">2024.04.05 - 2024.04.07</div>
+              </div>
+              <div class="trip-history-stats">
+                <span>💰 ₩280,000</span>
+                <span>📍 6개 장소</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

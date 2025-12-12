@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripCanvas - AI 기반 여행 플래너</title>
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <!-- 헤더 -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">🗺️ TripCanvas</div>
+        <div class="trip-title">서울-부산 2박 3일 여행</div>
+      </div>
+      <div class="header-right">
+        <div class="collab-users">
+          <div class="user-avatar" title="나">🧑</div>
+          <div class="user-avatar" title="김민수">김</div>
+          <div class="user-avatar" title="이지은">이</div>
+        </div>
+        <button class="btn btn-primary">💾 저장하기</button>
+        <button class="btn btn-secondary" id="logout-button">
+          🚪 로그아웃
+        </button>
+      </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <div class="main-container">
+      <!-- 왼쪽 사이드바 -->
+      <aside class="sidebar">
+        <div class="sidebar-tabs">
+          <button class="tab active">📍 경로</button>
+          <button class="tab">🎨 템플릿</button>
+          <button class="tab">📊 일정</button>
+        </div>
+
+        <div class="sidebar-content">
+          <!-- AI 플래너 -->
+          <div class="ai-planner">
+            <div class="section-title">🤖 AI 경로 생성</div>
+
+            <div class="input-group">
+              <label>출발지</label>
+              <select name="departure" id="departure">
+                <option value="">지역을 선택하세요</option>
+                <option value="서울특별시">서울특별시</option>
+                <option value="인천광역시">인천광역시</option>
+                <option value="대전광역시">대전광역시</option>
+                <option value="대구광역시">대구광역시</option>
+                <option value="광주광역시">광주광역시</option>
+                <option value="부산광역시">부산광역시</option>
+                <option value="울산광역시">울산광역시</option>
+                <option value="세종특별자치시">세종특별자치시</option>
+                <option value="경기도">경기도</option>
+                <option value="강원특별자치도">강원특별자치도</option>
+                <option value="충청북도">충청북도</option>
+                <option value="충청남도">충청남도</option>
+                <option value="경상북도">경상북도</option>
+                <option value="경상남도">경상남도</option>
+                <option value="전북특별자치도">전북특별자치도</option>
+                <option value="전라남도">전라남도</option>
+                <option value="제주특별자치도">제주특별자치도</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label>도착지</label>
+              <select name="destination" id="destination">
+                <option value="">지역을 선택하세요</option>
+                <option value="서울특별시">서울특별시</option>
+                <option value="인천광역시">인천광역시</option>
+                <option value="대전광역시">대전광역시</option>
+                <option value="대구광역시">대구광역시</option>
+                <option value="광주광역시">광주광역시</option>
+                <option value="부산광역시">부산광역시</option>
+                <option value="울산광역시">울산광역시</option>
+                <option value="세종특별자치시">세종특별자치시</option>
+                <option value="경기도">경기도</option>
+                <option value="강원특별자치도">강원특별자치도</option>
+                <option value="충청북도">충청북도</option>
+                <option value="충청남도">충청남도</option>
+                <option value="경상북도">경상북도</option>
+                <option value="경상남도">경상남도</option>
+                <option value="전북특별자치도">전북특별자치도</option>
+                <option value="전라남도">전라남도</option>
+                <option value="제주특별자치도">제주특별자치도</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label>여행 시작 날짜</label>
+              <input type="date" id="start-date" />
+            </div>
+
+            <div class="input-group">
+              <label>여행 마지막 날짜</label>
+              <input type="date" id="end-date" />
+            </div>
+
+            <div class="input-group">
+              <label>개인 예산 (원)</label>
+              <input
+                type="number"
+                id="personal-budget"
+                placeholder="예: 500000"
+                min="0"
+                step="10000"
+              />
+            </div>
+
+            <div class="input-group">
+              <label>여행 인원 (명)</label>
+              <input
+                type="number"
+                id="people-count"
+                placeholder="예: 2"
+                min="1"
+                value="1"
+              />
+            </div>
+
+            <div class="input-group">
+              <label>총 예산</label>
+              <!-- 그라데이션 제거하고 primary 색상으로 변경 -->
+              <div
+                style="
+                  padding: 12px;
+                  background: var(--primary);
+                  border-radius: 8px;
+                  color: white;
+                  font-size: 20px;
+                  font-weight: bold;
+                  text-align: center;
+                "
+                id="total-budget"
+              >
+                0원
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>여행 스타일</label>
+              <div class="template-chips">
+                <div class="chip selected">🍜 맛집</div>
+                <div class="chip">🏛️ 역사/문화</div>
+                <div class="chip">🌄 자연</div>
+                <div class="chip">🛍️ 쇼핑</div>
+              </div>
+            </div>
+
+            <button class="btn-generate">✨ AI로 경로 생성하기</button>
+          </div>
+
+          <!-- 생성된 장소 리스트 -->
+          <div class="places-list">
+            <div class="section-title">📍 추천 장소 (5개)</div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">1</span>
+                광안리 해변
+              </div>
+              <div class="place-description">
+                해운대와 함께 부산의 대표 해변. 광안대교 야경이 유명합니다.
+              </div>
+              <div class="place-tags">
+                <span class="tag">#사진스팟</span>
+                <span class="tag">#야경</span>
+                <span class="tag">#해변</span>
+              </div>
+            </div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">2</span>
+                자갈치 시장
+              </div>
+              <div class="place-description">
+                신선한 해산물을 직접 고르고 바로 조리해서 먹을 수 있는 전통 시장
+              </div>
+              <div class="place-tags">
+                <span class="tag">#맛집</span>
+                <span class="tag">#해산물</span>
+                <span class="tag">#전통시장</span>
+              </div>
+            </div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">3</span>
+                감천문화마을
+              </div>
+              <div class="place-description">
+                알록달록한 집들이 층층이 쌓인 한국의 산토리니
+              </div>
+              <div class="place-tags">
+                <span class="tag">#사진스팟</span>
+                <span class="tag">#예술</span>
+                <span class="tag">#마을</span>
+              </div>
+            </div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">4</span>
+                해운대 해수욕장
+              </div>
+              <div class="place-description">
+                한국에서 가장 유명한 해수욕장. 주변에 맛집과 카페가 많습니다.
+              </div>
+              <div class="place-tags">
+                <span class="tag">#해변</span>
+                <span class="tag">#휴양</span>
+              </div>
+            </div>
+
+            <div class="place-item">
+              <div class="place-name">
+                <span class="place-number">5</span>
+                태종대
+              </div>
+              <div class="place-description">
+                부산의 남단 절벽. 등대와 함께 탁 트인 바다 전망 감상
+              </div>
+              <div class="place-tags">
+                <span class="tag">#자연</span>
+                <span class="tag">#전망</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 중앙 지도 영역 -->
+      <main class="map-container">
+        <!-- 지도 툴바 -->
+        <div class="map-toolbar">
+          <button class="tool-btn active" title="이동">🖐️</button>
+          <button class="tool-btn" title="메모 작성">✏️</button>
+          <button class="tool-btn" title="하이라이트">🖍️</button>
+          <button class="tool-btn" title="텍스트">📝</button>
+          <button class="tool-btn" title="지우개">🧹</button>
+          <button class="tool-btn" title="실행 취소">↩️</button>
+        </div>
+
+        <div class="map-canvas">
+          <div class="map-placeholder">
+            <div class="map-placeholder-icon">🗺️</div>
+            <div>AI로 경로를 생성하면 여기에 지도가 표시됩니다</div>
+            <div style="margin-top: 8px; font-size: 14px">
+              지도 위에 메모를 작성하고 동행자들과 실시간으로 공유하세요!
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 오른쪽 패널 -->
+      <aside class="right-panel">
+        <div class="panel-tabs">
+          <button class="tab active">💬 채팅</button>
+          <button class="tab">📹 화상</button>
+          <button class="tab">💰 예산</button>
+        </div>
+
+        <div class="panel-content">
+          <!-- 채팅 섹션 -->
+          <div class="section-title">💬 실시간 협업 채팅</div>
+
+          <div class="chat-messages">
+            <div class="message">
+              <div class="message-author">김민수</div>
+              <div class="message-text">자갈치 시장 대신 송정 해변 어때요?</div>
+              <div class="message-time">3분 전</div>
+            </div>
+
+            <div class="message">
+              <div class="message-author">이지은</div>
+              <div class="message-text">
+                좋아요! 서핑도 할 수 있을 것 같아요 🏄
+              </div>
+              <div class="message-time">1분 전</div>
+            </div>
+
+            <div class="message">
+              <div class="message-author">나</div>
+              <div class="message-text">그럼 일정 수정해볼게요!</div>
+              <div class="message-time">방금</div>
+            </div>
+          </div>
+
+          <!-- WebRTC 화상 채팅 (숨김 상태) -->
+          <div class="video-chat" style="display: none">
+            <div class="video-grid">
+              <div class="video-tile">
+                🧑
+                <div class="video-name">나</div>
+              </div>
+              <div class="video-tile">
+                👤
+                <div class="video-name">김민수</div>
+              </div>
+              <div class="video-tile">
+                👤
+                <div class="video-name">이지은</div>
+              </div>
+            </div>
+            <div class="video-controls">
+              <button class="video-control-btn">🎤</button>
+              <button class="video-control-btn">📹</button>
+              <button class="video-control-btn">🖥️</button>
+              <button class="video-control-btn danger">📞</button>
+            </div>
+          </div>
+
+          <!-- 예산 트래커 (숨김 상태) -->
+          <div class="budget-section" style="display: none">
+            <div class="budget-summary">
+              <div class="budget-amount">₩523,000</div>
+              <div class="budget-label">총 사용 금액 / ₩800,000</div>
+            </div>
+
+            <div class="section-title">최근 지출 내역</div>
+
+            <div class="expense-item">
+              <div class="expense-info">
+                <div class="expense-name">KTX 왕복 티켓</div>
+                <div class="expense-category">#교통비</div>
+              </div>
+              <div class="expense-amount">₩120,000</div>
+            </div>
+
+            <div class="expense-item">
+              <div class="expense-info">
+                <div class="expense-name">호텔 2박</div>
+                <div class="expense-category">#숙박비</div>
+              </div>
+              <div class="expense-amount">₩280,000</div>
+            </div>
+
+            <div class="expense-item">
+              <div class="expense-info">
+                <div class="expense-name">자갈치 시장 회</div>
+                <div class="expense-category">#식비</div>
+              </div>
+              <div class="expense-amount">₩89,000</div>
+            </div>
+
+            <div class="expense-item">
+              <div class="expense-info">
+                <div class="expense-name">감천문화마을 입장</div>
+                <div class="expense-category">#관광비</div>
+              </div>
+              <div class="expense-amount">₩34,000</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input">
+          <input type="text" placeholder="메시지를 입력하세요..." />
+          <button>전송</button>
+        </div>
+      </aside>
+    </div>
+    <script type="module" src="../pages/Landing.mjs"></script>
+  </body>
+</html>
