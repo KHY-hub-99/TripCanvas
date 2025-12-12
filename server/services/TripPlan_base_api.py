@@ -43,11 +43,10 @@ except Exception as e:
         print(f"대체 방법도 실패: {e2}")
         
 print(tripdata.columns)
-        
-
-# --- 2. 사용자 입력 받기 (테마 입력 재활성화) ---
+    
+# --- 2. 사용자 입력 받기 (수정됨: 숙소 테마 자동 결정) ---
 def get_user_inputs():
-    """사용자로부터 여행 계획에 필요한 정보를 입력받습니다."""
+    """사용자로부터 여행 계획에 필요한 정보를 입력받고, 장소 테마에 따라 숙소 테마를 자동 결정합니다."""
     print("\n--- 📝 여행 계획 정보를 입력해주세요 ---")
     
     start_loc = input("출발지: ")
@@ -81,27 +80,33 @@ def get_user_inputs():
         
     # 🌟 장소 테마 입력 받기 🌟
     place_theme = input("장소 여행 테마 (파일의 cat 값 중 선택, 여러 개는 쉼표(,)로 구분): ")
-    place_themes_list = [t.strip() for t in place_theme.split(',')]
+    place_themes_list = [t.strip() for t in place_theme.split(' ')]
     
-    # 🌟 숙소 테마 고정 🌟
-    accommodation_theme = "숙소"
+    # 🌟 숙소 테마 자동 결정 (수정된 로직) 🌟
+    # 장소 테마에 '캠핑'이 있으면 숙소 테마를 '캠핑'으로 설정, 아니면 '숙소'로 설정
+    if '캠핑' in place_themes_list:
+        accommodation_theme = "캠핑"
+    else:
+        accommodation_theme = "숙소"
+        
+    print(f"\n[자동 설정된 숙소 테마]: {accommodation_theme}")
     
     return {
         "start_loc": start_loc,
         "end_area": end_area,
-        "detail_addr": detail_addr,  # detail_addr도 end_area로 설정
+        "detail_addr": detail_addr,
         "start_date": start_date_str,
         "end_date": end_date_str,
         "duration": duration,
         "budget_per_person": budget,
         "total_people": people,
         "place_themes": place_themes_list, # 장소 테마
-        "accommodation_theme": accommodation_theme # 숙소 테마
+        "accommodation_theme": accommodation_theme # 숙소 테마 (자동 결정 값 사용)
     }
 
-# --- 3. 데이터 필터링 및 전처리 (수정됨: 장소/숙소 분리 필터링) ---
+# --- 3. 데이터 필터링 및 전처리 (수정 없음, 'accommodation_theme' 변수 사용 로직 유지) ---
 def filter_and_format_data(df, end_area, detail_addr, place_themes, accommodation_theme):
-    """장소는 사용자가 입력한 테마로, 숙소는 '숙소' 테마로 분리하여 필터링합니다."""
+    """장소는 사용자가 입력한 테마로, 숙소는 결정된 숙소 테마로 분리하여 필터링합니다."""
     
     # 1. 지역 필터링 (공통)
     df_area = df[(df['area'] == end_area) & (df['detail_addr'] == detail_addr)].copy()
@@ -112,16 +117,26 @@ def filter_and_format_data(df, end_area, detail_addr, place_themes, accommodatio
 
     # 2. 장소 목록 필터링 (area + place_themes 사용)
     if place_themes and place_themes != ['']:
-        # 각 행의 'cat' 값에 place_themes의 요소가 하나라도 포함되는지 확인
-        place_mask = df_area['cat'].apply(
+        # 2-1. 장소 후보 마스크 (place_themes에 포함)
+        place_candidate_mask = df_area['cat'].apply(
             lambda x: any(theme in str(x) for theme in place_themes) if pd.notna(x) else False
         )
-        df_places = df_area[place_mask].copy()
     else:
-        # 장소 테마가 없으면, 해당 지역의 모든 장소를 후보로 사용
-        df_places = df_area.copy()
-        
-    # 3. 숙소 목록 필터링 (area + '숙소' 테마 사용)
+        # 장소 테마가 없으면, 지역 내 모든 항목을 후보로 설정
+        place_candidate_mask = df_area['title'].apply(lambda x: True)
+    
+    # 2-2. 숙소 테마를 제외한 순수 장소 목록 필터링
+    # accommodation_theme(예: '숙소', '캠핑')를 포함하지 않는 항목만 선택
+    accommodation_exclusion_mask = df_area['cat'].apply(
+        lambda x: accommodation_theme not in str(x) if pd.notna(x) else True 
+    )
+    
+    # 최종 장소 마스크: 장소 후보이면서 숙소 테마가 아닌 것
+    final_place_mask = place_candidate_mask & accommodation_exclusion_mask
+    df_places = df_area[final_place_mask].copy()
+
+    # 3. 숙소 목록 필터링 (area + accommodation_theme 변수 사용)
+    # 결정된 accommodation_theme 변수 값(예: '캠핑' 또는 '숙소')으로 필터링
     accommodation_mask = df_area['cat'].apply(
         lambda x: accommodation_theme in str(x) if pd.notna(x) else False
     )
@@ -129,7 +144,7 @@ def filter_and_format_data(df, end_area, detail_addr, place_themes, accommodatio
     
     # 4. Gemini에게 전달할 데이터 형식화
     
-    # 4-1. 장소 후보 목록 형식화
+    # 4-1. 장소 후보 목록 형식화 (기존 로직 유지)
     formatted_places = []
     if not df_places.empty:
         places_data = df_places[[ 'title', 'y', 'x' ]].fillna("없음").to_dict('records')
@@ -139,21 +154,21 @@ def filter_and_format_data(df, end_area, detail_addr, place_themes, accommodatio
                 f"좌표: {p['y']}, {p['x']}" 
             )
             formatted_places.append(details)
-    
-    # 4-2. 숙소 후보 목록 형식화
+
+    # 4-2. 숙소 후보 목록 형식화 (기존 로직 유지)
     formatted_accommodations = []
     if not df_accommodations.empty:
         accommodation_data = df_accommodations[[ 'title', 'y', 'x' ]].fillna("없음").to_dict('records')
-        for p in accommodation_data:
+        for a in accommodation_data:
             details = (
-                f"숙소 후보 이름: {p['title']}, "
-                f"좌표: {p['y']}, {p['x']}"
+                f"이름: {a['title']}, "
+                f"좌표: {a['y']}, {a['x']}"
             )
             formatted_accommodations.append(details)
 
     return formatted_places, formatted_accommodations
 
-# --- 4. Gemini API 호출 함수 (수정됨: JSON 구조를 배열 기반으로 변경) ---
+# --- 4. Gemini API 호출 함수 (수정 없음, 기존 JSON 구조 스키마 유지) ---
 def generate_travel_plan(user_info, places_data, accommodation_data):
     """Gemini API를 호출하여 여행 계획을 생성합니다."""
     
@@ -171,6 +186,7 @@ def generate_travel_plan(user_info, places_data, accommodation_data):
     여행 기간: {user_info['duration']}일 ({user_info['start_date']} ~ {user_info['end_date']})
     총 예산: {total_budget}원 (숙소 및 모든 활동 포함)
     여행 인원: {user_info['total_people']}명
+    여행자가 요청한 숙소/숙박 테마: {user_info['accommodation_theme']}
     
     [전체 장소 후보 목록] (places에 사용)
     {places_data}
@@ -212,13 +228,15 @@ def generate_travel_plan(user_info, places_data, accommodation_data):
     4. 'accommodation'의 'name' 및 'coords' 값은 반드시 [숙소 후보 목록]에서 가져와야 합니다.
     5. **'closest_subway'** 값은 **'coords'**를 참고하여 **가장 가까운 지하철역 이름을 찾아 작성해야 합니다.** 가까운 지하철역이 없다면 **"없음"**으로 작성하세요.
     6. 'estimated_cost'는 숫자 (integer) 형식으로만 작성해야 합니다.
+    7. 여행 시작날과 마지막날이 같다면 'day'는 1로 작성하고, 숙소이름은 "없음"으로 작성해주세요.
+
 
     **최종 출력은 오직 요구된 JSON 형식이어야 합니다. 다른 텍스트는 포함하지 마세요.**
     """
 
     print("\n⏳ Gemini API에 여행 계획 생성을 요청 중입니다...")
     
-    # --- JSON 스키마 정의 (배열 기반으로 수정) ---
+    # --- JSON 스키마 정의 ---
 
     # 1. 장소/숙소 상세 정보 스키마
     LocationDetails_schema = types.Schema(
@@ -279,36 +297,50 @@ def generate_travel_plan(user_info, places_data, accommodation_data):
         
     except json.JSONDecodeError:
         print("\n❌ JSON 파싱 오류: Gemini가 요청한 JSON 형식을 정확히 반환하지 못했습니다.")
+        print(f"\n[Gemini 응답 원문 (확인용)]:\n{response.text}")
         return None
     except Exception as e:
         print(f"\n❌ Gemini API 호출 중 다른 오류가 발생했습니다: {e}")
         return None
 
-# --- 5. 메인 실행 로직 (수정됨: 필터링 결과 처리) ---
+# --- 5. 메인 실행 로직 ---
 if __name__ == "__main__":
-    # 1. 사용자 입력 받기
+    # 1. 사용자 입력 받기 (숙소 테마 자동 결정 포함)
     user_info = get_user_inputs()
+    #    return {
+    #     "start_loc": start_loc,
+    #     "end_area": end_area,
+    #     "detail_addr": detail_addr,
+    #     "start_date": start_date_str,
+    #     "end_date": end_date_str,
+    #     "duration": duration,
+    #     "budget_per_person": budget,
+    #     "total_people": people,
+    #     "place_themes": place_themes_list, # 장소 테마
+    #     "accommodation_theme": accommodation_theme # 숙소 테마 (자동 결정 값 사용)
+    # }
     
     # 2. 데이터 필터링 및 형식화
+    # formatted_places, formatted_accommodations
     filter_results = filter_and_format_data(
         tripdata, 
         user_info['end_area'],
         user_info['detail_addr'],
         user_info['place_themes'], # 장소 테마 사용
-        user_info['accommodation_theme'] # 숙소 테마 사용
+        user_info['accommodation_theme'] # 자동 결정된 숙소 테마 사용
     )
     if filter_results:
         formatted_places, formatted_accommodations = filter_results
         
         # 숙소 후보가 없으면 오류 메시지 출력 후 종료
         if not formatted_accommodations:
-             print(f"\n❌ 오류: '{user_info['end_area']}' 지역에서 '숙소' 테마를 가진 항목을 찾을 수 없습니다. 숙소 없이 여행 계획을 진행할 수 없습니다.")
+            print(f"\n❌ 오류: '{user_info['end_area']}' 지역에서 '{user_info['accommodation_theme']}' 테마를 가진 항목을 찾을 수 없습니다. 숙소 없이 여행 계획을 진행할 수 없습니다.")
         elif not formatted_places:
-             print(f"\n❌ 오류: '{user_info['end_area']}' 지역에 장소 후보가 없습니다.")
+            print(f"\n❌ 오류: '{user_info['end_area']}' 지역에 장소 후보가 없습니다.")
         else:
             # 3. Gemini API 호출
             travel_plan_json = generate_travel_plan(
-                user_info, 
+                user_info,
                 formatted_places, 
                 formatted_accommodations
             )
