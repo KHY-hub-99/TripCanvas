@@ -2,7 +2,7 @@
 // 메인 페이지 진입 시 인증 상태를 확인하고 필요한 정보를 로드합니다.
 
 const checkAuthAndLoad = async () => {
-  const token = localStorage.getItem("userToken");
+  const token = localStorage.getItem("Token");
 
   if (!token) {
     // 토큰이 없으면 로그인 페이지로 강제 이동
@@ -26,7 +26,7 @@ const checkAuthAndLoad = async () => {
       console.log("User Profile:", data);
     } else {
       // 토큰이 만료되었거나 유효하지 않은 경우
-      localStorage.removeItem("userToken"); // 만료된 토큰 제거
+      localStorage.removeItem("Token"); // 만료된 토큰 제거
       alert("인증 정보가 만료되었습니다. 다시 로그인해 주세요.");
       window.location.href = "login.html";
     }

@@ -145,15 +145,25 @@
 
             <div class="input-group">
               <label>여행 스타일</label>
-              <div class="template-chips">
-                <div class="chip selected">🍜 맛집</div>
-                <div class="chip">🏛️ 역사/문화</div>
-                <div class="chip">🌄 자연</div>
-                <div class="chip">🛍️ 쇼핑</div>
+              <div class="template-chips" id="travel-style-chips">
+                <div class="chip selected" data-value="맛집">🍜 맛집</div>
+                <div class="chip" data-value="역사/문화">🏛️ 역사/문화</div>
+                <div class="chip" data-value="자연">🌄 자연</div>
+                <div class="chip" data-value="쇼핑">🛍️ 쇼핑</div>
+                <div class="chip" data-value="카페">☕ 카페</div>
+                <div class="chip" data-value="캠핑">⛺ 캠핑</div>
               </div>
+              <input
+                type="hidden"
+                id="selected-styles"
+                name="place-themes"
+                value="맛집"
+              />
             </div>
 
-            <button class="btn-generate">✨ AI로 경로 생성하기</button>
+            <button class="btn-generate" id="btn-generate">
+              ✨ AI로 경로 생성하기
+            </button>
           </div>
 
           <!-- 생성된 장소 리스트 -->

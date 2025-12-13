@@ -1,9 +1,10 @@
-// server/index.js (서버 진입점 예시)
+// server/app.js (서버 진입점 예시)
 import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./server/config/db.mjs";
 import authRoutes from "./server/routes/auth.mjs";
 import userRoutes from "./server/routes/users.mjs"; // 다른 라우트도 연결
+import planRoutes from "./server/routes/plan.mjs";
 
 dotenv.config(); // .env 파일 로드
 connectDB(); // MongoDB 연결
@@ -14,6 +15,7 @@ app.use(express.json()); // JSON 요청 본문 파싱
 // API 라우트 연결
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/plan", planRoutes);
 
 // 정적 파일 제공 (클라이언트 HTML 파일 제공)
 app.use(express.static("client/public"));

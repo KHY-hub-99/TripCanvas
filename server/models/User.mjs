@@ -23,6 +23,16 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    profileImg: {
+      type: String,
+      default: null,
+    },
+    // 자기소개
+    bio: {
+      type: String,
+      maxlength: [200, "자기소개는 200자 이하여야 합니다"],
+      default: "",
+    },
   },
   {
     timestamps: true,
@@ -42,6 +52,18 @@ userSchema.pre("save", async function (next) {
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+});
+
+userSchema.virtual("trips", {
+  ref: "Trip", // 연결할 모델
+  localField: "_id", // User의 어떤 필드를
+  foreignField: "owner", // Trip의 어떤 필드와 매칭할지(Trip 모델에서 사용자를 가리키는 필드명이 owner임)
+});
+
+userSchema.virtual("bucketlists", {
+  ref: "Bucketlist",
+  localField: "_id",
+  foreignField: "userId",
 });
 
 const User = mongoose.model("User", userSchema, "user");

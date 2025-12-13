@@ -21,7 +21,7 @@ if (loginForm) {
 
       if (response.ok) {
         // JWT 토큰을 localStorage에 저장
-        localStorage.setItem("userToken", data.token);
+        localStorage.setItem("Token", data.token);
         alert("로그인 성공! " + data.nickname + "님 환영합니다.");
         // 요구사항: 로그인 성공 시 main.html로 이동
         window.location.href = "main.html";

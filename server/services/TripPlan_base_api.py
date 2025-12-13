@@ -6,59 +6,83 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 import json
+import requests
+from pymongo import MongoClient
 
-
-# --- 1. tripdata 불러오기 ---
+sys.stdout.reconfigure(encoding="utf-8")
+print("ARGV:", sys.argv)
 load_dotenv()
+CONNECTION_STRING = os.getenv("DBURL")
 API_KEY = os.getenv("GOOGLE_API")
 client = genai.Client(api_key=API_KEY)
 MODEL_NAME = "gemini-2.5-flash"
 
-if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8")
-    sys.stderr.reconfigure(encoding="utf-8")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-excel_path = os.path.join(BASE_DIR, "data", "tripdata.xlsx")
+# --- 1. tripdata 불러오기 ---
 
-# 엑셀 파일 읽기 시 engine 명시 및 인코딩 처리
-try:
-    # openpyxl 엔진 사용 (xlsx 파일용)
-    tripdata = pd.read_excel(excel_path, index_col=None, engine='openpyxl')
+client_m = MongoClient(CONNECTION_STRING)
+DATABASE = "ProjectData"
+COLLECTION_PLACE = "place"
+db = client_m[DATABASE]
+collection = db[COLLECTION_PLACE]
+
+projection = {
+    # 1. 원하는 최상위 필드
+    "title": 1,
+    "category": 1,
     
-    # 한글 출력이 깨지는 경우 인코딩 설정
-    import sys
-    if sys.platform == 'win32':
-        import io
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    # 2. 원하는 중첩 필드 (address 객체 내의 city, district)
+    "address.city": 1,
+    "address.district": 1,
     
-except FileNotFoundError:
-    print(f"파일을 찾을 수 없습니다: {excel_path}")
-except Exception as e:
-    print(f"파일 읽기 오류: {e}")
-    # 대체 방법: xlrd 엔진 시도 (구버전 xls 파일용)
-    try:
-        tripdata = pd.read_excel(excel_path, index_col=None, engine='xlrd')
-    except Exception as e2:
-        print(f"대체 방법도 실패: {e2}")
-        
-print(tripdata.columns)
+    # 3. 원하는 중첩 필드 (coordinates 객체 내의 coordinates 배열)
+    "coordinates.coordinates": 1,
     
+    # 4. 기본으로 포함되는 _id 필드는 제외
+    "_id": 0 
+}
+
+cursor = collection.find({}, projection)
+data_list = list(cursor)
+
+df = pd.DataFrame(data_list)
+df['city'] = df['address'].apply(lambda x: x.get('city'))
+df['district'] = df['address'].apply(lambda x: x.get('district'))
+df['x'] = df['coordinates'].apply(lambda x: x.get('coordinates')[0])
+df['y'] = df['coordinates'].apply(lambda x: x.get('coordinates')[1])
+
+df = df.drop('address', axis=1)
+df = df.drop('coordinates', axis=1)
+
+print(df.head(1))
+
+# def main():
+#     input_data = sys.stdin.read()
+#     user_input = json.loads(input_data)
+
+#     print("[OK] 받은 사용자 입력:")
+#     print(user_input["start_loc"])
+
+# if __name__ == "__main__":
+#     main()
+
 # --- 2. 사용자 입력 받기 (수정됨: 숙소 테마 자동 결정) ---
 def get_user_inputs():
     """사용자로부터 여행 계획에 필요한 정보를 입력받고, 장소 테마에 따라 숙소 테마를 자동 결정합니다."""
-    print("\n--- 📝 여행 계획 정보를 입력해주세요 ---")
     
-    start_loc = input("출발지: ")
-    # area 값은 tripdata['area'].unique()에서 확인하여 입력하는 것을 권장합니다.
-    end_area = input(f"도착지 (파일의 area 값 중 하나, 예: 서울, 부산): ")
-    detail_addr = input(f"도착지 (파일의 area 값 중 하나, 예: 시/군/구): ")
+    input_data = sys.stdin.read()
+    user_input = json.loads(input_data)
+    
+    start_loc = user_input["start_loc"]
+    # city 값은 tripdata['city'].unique()에서 확인하여 입력하는 것을 권장합니다.
+    end_city = user_input["end_area"]
+    district = user_input["detail_addr"]
     
     # 날짜 입력 및 기간 계산
     while True:
         try:
-            start_date_str = input("여행 시작 날짜 (YYYY-MM-DD): ")
-            end_date_str = input("여행 마지막 날짜 (YYYY-MM-DD): ")
+            start_date_str = user_input["start_date"]
+            end_date_str = user_input["end_date"]
             start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
             end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
             
@@ -72,15 +96,15 @@ def get_user_inputs():
             print("❌ 오류: 날짜 형식이 올바르지 않습니다 (YYYY-MM-DD). 다시 입력해 주세요.")
 
     try:
-        budget = int(input("1인 기준 총 예산 (원): "))
-        people = int(input("여행 인원수: "))
+        budget = user_input["budget_per_person"]
+        people = user_input["total_people"]
     except ValueError:
         print("❌ 오류: 예산과 인원수는 숫자로 입력해야 합니다. 프로그램을 다시 시작해 주세요.")
         exit()
         
     # 🌟 장소 테마 입력 받기 🌟
-    place_theme = input("장소 여행 테마 (파일의 cat 값 중 선택, 여러 개는 쉼표(,)로 구분): ")
-    place_themes_list = [t.strip() for t in place_theme.split(' ')]
+    place_theme = user_input["place_themes"]
+    place_themes_list = [t.strip() for t in place_theme.split(',')]
     
     # 🌟 숙소 테마 자동 결정 (수정된 로직) 🌟
     # 장소 테마에 '캠핑'이 있으면 숙소 테마를 '캠핑'으로 설정, 아니면 '숙소'로 설정
@@ -93,54 +117,55 @@ def get_user_inputs():
     
     return {
         "start_loc": start_loc,
-        "end_area": end_area,
-        "detail_addr": detail_addr,
+        "end_city": end_city,
+        "district": district,
         "start_date": start_date_str,
         "end_date": end_date_str,
         "duration": duration,
         "budget_per_person": budget,
         "total_people": people,
         "place_themes": place_themes_list, # 장소 테마
-        "accommodation_theme": accommodation_theme # 숙소 테마 (자동 결정 값 사용)
+        "accommodation_theme": accommodation_theme, # 숙소 테마 (자동 결정 값 사용)
+        "userid": user_input["userId"]
     }
 
 # --- 3. 데이터 필터링 및 전처리 (수정 없음, 'accommodation_theme' 변수 사용 로직 유지) ---
-def filter_and_format_data(df, end_area, detail_addr, place_themes, accommodation_theme):
+def filter_and_format_data(df, end_city, district, place_themes, accommodation_theme):
     """장소는 사용자가 입력한 테마로, 숙소는 결정된 숙소 테마로 분리하여 필터링합니다."""
     
     # 1. 지역 필터링 (공통)
-    df_area = df[(df['area'] == end_area) & (df['detail_addr'] == detail_addr)].copy()
+    df_city = df[(df['city'] == end_city) & (df['district'] == district)].copy()
     
-    if df_area.empty:
-        print(f"\n❌ 오류: '{end_area}' 지역에 해당하는 장소를 찾을 수 없습니다. 조건을 다시 확인해 주세요.")
+    if df_city.empty:
+        print(f"\n❌ 오류: '{end_city}' 지역에 해당하는 장소를 찾을 수 없습니다. 조건을 다시 확인해 주세요.")
         return None
 
-    # 2. 장소 목록 필터링 (area + place_themes 사용)
+    # 2. 장소 목록 필터링 (city + place_themes 사용)
     if place_themes and place_themes != ['']:
         # 2-1. 장소 후보 마스크 (place_themes에 포함)
-        place_candidate_mask = df_area['cat'].apply(
+        place_candidate_mask = df_city['category'].apply(
             lambda x: any(theme in str(x) for theme in place_themes) if pd.notna(x) else False
         )
     else:
         # 장소 테마가 없으면, 지역 내 모든 항목을 후보로 설정
-        place_candidate_mask = df_area['title'].apply(lambda x: True)
+        place_candidate_mask = df_city['title'].apply(lambda x: True)
     
     # 2-2. 숙소 테마를 제외한 순수 장소 목록 필터링
     # accommodation_theme(예: '숙소', '캠핑')를 포함하지 않는 항목만 선택
-    accommodation_exclusion_mask = df_area['cat'].apply(
+    accommodation_exclusion_mask = df_city['category'].apply(
         lambda x: accommodation_theme not in str(x) if pd.notna(x) else True 
     )
     
     # 최종 장소 마스크: 장소 후보이면서 숙소 테마가 아닌 것
     final_place_mask = place_candidate_mask & accommodation_exclusion_mask
-    df_places = df_area[final_place_mask].copy()
+    df_places = df_city[final_place_mask].copy()
 
-    # 3. 숙소 목록 필터링 (area + accommodation_theme 변수 사용)
+    # 3. 숙소 목록 필터링 (city + accommodation_theme 변수 사용)
     # 결정된 accommodation_theme 변수 값(예: '캠핑' 또는 '숙소')으로 필터링
-    accommodation_mask = df_area['cat'].apply(
+    accommodation_mask = df_city['category'].apply(
         lambda x: accommodation_theme in str(x) if pd.notna(x) else False
     )
-    df_accommodations = df_area[accommodation_mask].copy()
+    df_accommodations = df_city[accommodation_mask].copy()
     
     # 4. Gemini에게 전달할 데이터 형식화
     
@@ -182,7 +207,7 @@ def generate_travel_plan(user_info, places_data, accommodation_data):
     
     [여행 정보]
     출발지: {user_info['start_loc']}
-    도착지/여행 지역: {user_info['end_area']}
+    도착지/여행 지역: {user_info['end_city']}
     여행 기간: {user_info['duration']}일 ({user_info['start_date']} ~ {user_info['end_date']})
     총 예산: {total_budget}원 (숙소 및 모든 활동 포함)
     여행 인원: {user_info['total_people']}명
@@ -196,6 +221,8 @@ def generate_travel_plan(user_info, places_data, accommodation_data):
 
     [JSON 출력 구조 예시]
     {{
+      "title": "여행의 전체 제목",
+      "description": "전체 여행에 대한 간단한 설명",
       "travel_plan": [
         {{
           "day": 1, 
@@ -229,6 +256,7 @@ def generate_travel_plan(user_info, places_data, accommodation_data):
     5. **'closest_subway'** 값은 **'coords'**를 참고하여 **가장 가까운 지하철역 이름을 찾아 작성해야 합니다.** 가까운 지하철역이 없다면 **"없음"**으로 작성하세요.
     6. 'estimated_cost'는 숫자 (integer) 형식으로만 작성해야 합니다.
     7. 여행 시작날과 마지막날이 같다면 'day'는 1로 작성하고, 숙소이름은 "없음"으로 작성해주세요.
+    8. 일자 별 'places'는 최소 2개 최대 4개까지만 추천합니다. 일자 별 'accommodation'은 1개만 추천합니다.
 
 
     **최종 출력은 오직 요구된 JSON 형식이어야 합니다. 다른 텍스트는 포함하지 마세요.**
@@ -279,9 +307,17 @@ def generate_travel_plan(user_info, places_data, accommodation_data):
         response_schema=types.Schema(
             type=types.Type.OBJECT,
             properties={
+                "title": types.Schema(
+                    type=types.Type.STRING, 
+                    description="여행의 전체 제목"
+                ),
+                "description": types.Schema(
+                    type=types.Type.STRING, 
+                    description="전체 여행에 대한 간단한 설명"
+                ),
                 "travel_plan": travel_plan_schema
             },
-            required=["travel_plan"]
+            required=["title", "description", "travel_plan"] # 필수 필드에 title, description 추가
         )
     )
     # --- JSON 스키마 정의 끝 ---
@@ -309,8 +345,8 @@ if __name__ == "__main__":
     user_info = get_user_inputs()
     #    return {
     #     "start_loc": start_loc,
-    #     "end_area": end_area,
-    #     "detail_addr": detail_addr,
+    #     "end_city": end_city,
+    #     "district": district,
     #     "start_date": start_date_str,
     #     "end_date": end_date_str,
     #     "duration": duration,
@@ -323,9 +359,9 @@ if __name__ == "__main__":
     # 2. 데이터 필터링 및 형식화
     # formatted_places, formatted_accommodations
     filter_results = filter_and_format_data(
-        tripdata, 
-        user_info['end_area'],
-        user_info['detail_addr'],
+        df, 
+        user_info['end_city'],
+        user_info['district'],
         user_info['place_themes'], # 장소 테마 사용
         user_info['accommodation_theme'] # 자동 결정된 숙소 테마 사용
     )
@@ -334,9 +370,9 @@ if __name__ == "__main__":
         
         # 숙소 후보가 없으면 오류 메시지 출력 후 종료
         if not formatted_accommodations:
-            print(f"\n❌ 오류: '{user_info['end_area']}' 지역에서 '{user_info['accommodation_theme']}' 테마를 가진 항목을 찾을 수 없습니다. 숙소 없이 여행 계획을 진행할 수 없습니다.")
+            print(f"\n❌ 오류: '{user_info['end_city']}' 지역에서 '{user_info['accommodation_theme']}' 테마를 가진 항목을 찾을 수 없습니다. 숙소 없이 여행 계획을 진행할 수 없습니다.")
         elif not formatted_places:
-            print(f"\n❌ 오류: '{user_info['end_area']}' 지역에 장소 후보가 없습니다.")
+            print(f"\n❌ 오류: '{user_info['end_city']}' 지역에 장소 후보가 없습니다.")
         else:
             # 3. Gemini API 호출
             travel_plan_json = generate_travel_plan(
@@ -351,7 +387,8 @@ if __name__ == "__main__":
                 print("🎉 생성된 여행 계획 (JSON 형식) 🎉")
                 print("=============================================")
                 # 보기 좋게 JSON 출력
-                print(json.dumps(travel_plan_json, indent=4, ensure_ascii=False))
+                trip_plan_json = json.dumps(travel_plan_json, indent=4, ensure_ascii=False)
+                print(trip_plan_json)
                 print("=============================================")
                 file_path = "travel_plan.json"
                 try:
