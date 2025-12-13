@@ -188,6 +188,10 @@ body {
   margin-bottom: 16px;
 }
 
+#destination {
+  margin-bottom: 12px; /* 원하는 간격 값 (예: 12px) */
+}
+
 .input-group label {
   display: block;
   margin-bottom: 8px;
